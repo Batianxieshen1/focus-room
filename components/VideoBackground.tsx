@@ -7,9 +7,9 @@ interface Props {
 }
 
 const VIDEO_SOURCES: Record<string, string> = {
-  rain: '/videos/rain.mp4',
-  forest: '/videos/forest.mp4',
-  ocean: '/videos/ocean.mp4',
+  rain: (process.env.NEXT_PUBLIC_BASE_PATH || '') + '/videos/rain.mp4',
+  forest: (process.env.NEXT_PUBLIC_BASE_PATH || '') + '/videos/forest.mp4',
+  ocean: (process.env.NEXT_PUBLIC_BASE_PATH || '') + '/videos/ocean.mp4',
 }
 
 export default function VideoBackground({ scene }: Props) {
