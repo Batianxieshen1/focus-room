@@ -3,11 +3,12 @@
 import { useEffect, useRef } from 'react'
 import { useTimer, TimerMode, TimerSettings } from '@/hooks/useTimer'
 import Notification from './Notification'
+import { t } from '@/lib/i18n'
 
-const MODES: { key: TimerMode; label: string }[] = [
-  { key: 'pomodoro', label: '番茄钟' },
-  { key: 'stopwatch', label: '计时器' },
-  { key: 'countdown', label: '倒计时' },
+const MODES: { key: TimerMode; labelKey: string }[] = [
+  { key: 'pomodoro', labelKey: 'timer.pomodoro' },
+  { key: 'stopwatch', labelKey: 'timer.stopwatch' },
+  { key: 'countdown', labelKey: 'timer.countdown' },
 ]
 
 interface Props {
@@ -18,9 +19,10 @@ interface Props {
     updateSettings: (settings: TimerSettings) => void
   }) => void
   onStudySecondsChange?: (seconds: number) => void
+  onPomodoroComplete?: () => void
 }
 
-export default function Timer({ onActionsReady, onStudySecondsChange }: Props) {
+export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoroComplete }: Props) {
   const timer = useTimer()
   const lastNotifiedRef = useRef(timer.totalStudySeconds)
 
@@ -55,12 +57,21 @@ export default function Timer({ onActionsReady, onStudySecondsChange }: Props) {
     }
   }, [timer.notify, timer.clearNotify])
 
+  // Fire callback when a pomodoro completes (work phase ends)
+  const prevCompletedRef = useRef(timer.completedPomodoros)
+  useEffect(() => {
+    if (timer.completedPomodoros > prevCompletedRef.current) {
+      onPomodoroComplete?.()
+    }
+    prevCompletedRef.current = timer.completedPomodoros
+  }, [timer.completedPomodoros, onPomodoroComplete])
+
   // Page title countdown: show remaining time when timer is running
   useEffect(() => {
     if (timer.isRunning && (timer.mode === 'pomodoro' || timer.mode === 'countdown')) {
       document.title = `${timer.displayTime} - Focus Room`
     } else {
-      document.title = 'Focus Room | 沉浸式自习室'
+      document.title = t('timer.pageTitle')
     }
   }, [timer.displayTime, timer.isRunning, timer.mode])
 
@@ -80,7 +91,7 @@ export default function Timer({ onActionsReady, onStudySecondsChange }: Props) {
                   : 'text-white/65 hover:text-white/90'
               }`}
             >
-              {m.label}
+              {t(m.labelKey as any)}
             </button>
           ))}
         </div>
@@ -91,10 +102,10 @@ export default function Timer({ onActionsReady, onStudySecondsChange }: Props) {
             timer.pomodoroPhase === 'work' ? 'text-amber-200' :
             timer.pomodoroPhase === 'longBreak' ? 'text-cyan-200' : 'text-emerald-200'
           }`}>
-            {timer.pomodoroPhase === 'work' ? '📚 专注中' :
-             timer.pomodoroPhase === 'longBreak' ? '🌿 长休息' : '☕ 短休息'}
+            {timer.pomodoroPhase === 'work' ? t('timer.focusing') :
+             timer.pomodoroPhase === 'longBreak' ? t('timer.longBreak') : t('timer.shortBreak')}
             {timer.completedPomodoros > 0 && (
-              <span className="ml-3 text-white/60">· 已完成 {timer.completedPomodoros} 个番茄</span>
+              <span className="ml-3 text-white/60">· {t('timer.completed')} {timer.completedPomodoros} {t('timer.pomodoroCount')}</span>
             )}
           </div>
         )}
@@ -191,7 +202,7 @@ export default function Timer({ onActionsReady, onStudySecondsChange }: Props) {
 
         {/* 今日学习 */}
         <div className="text-xs text-white/55 tracking-wider">
-          今日已学习 {timer.studyTime}
+          {t('timer.todayStudy')} {timer.studyTime}
         </div>
       </div>
     </>

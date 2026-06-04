@@ -109,7 +109,7 @@ export default function StudyCalendar({ onClose }: Props) {
           <div className="text-center">
             <h2 className="text-lg font-medium text-white">{year} {monthNames[month]}</h2>
             <div className="text-[11px] text-white/40 mt-0.5">
-              {t('calendar.monthTotal')}: {formatDuration(monthTotal)} | {activeDays} {t('calendar.minutes')}
+              {t('calendar.monthTotal')}: {formatDuration(monthTotal)} | {activeDays} {t('calendar.activeDays')}
             </div>
           </div>
           <button onClick={nextMonth} className="w-8 h-8 rounded-full flex items-center justify-center text-white/50 hover:text-white/80 hover:bg-white/5 transition-all">

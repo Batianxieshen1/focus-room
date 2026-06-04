@@ -1,6 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { storageGet, storageSet } from '@/lib/storage'
+
+function getLocalDate(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+}
 
 export type TimerMode = 'pomodoro' | 'stopwatch' | 'countdown'
 
@@ -38,64 +44,49 @@ export interface StudySession {
 // 加载设置
 function loadSettings(): TimerSettings {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS
-  try {
-    const saved = localStorage.getItem('focus-room-settings')
-    if (saved) return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) }
-  } catch {}
-  return DEFAULT_SETTINGS
+  return storageGet<TimerSettings>('focus-room-settings', DEFAULT_SETTINGS)
 }
 
 // 加载今日数据
 function loadTodayData(): Partial<TimerState> {
   if (typeof window === 'undefined') return {}
-  try {
-    const today = new Date().toISOString().slice(0, 10)
-    const saved = localStorage.getItem('focus-room-today')
-    if (saved) {
-      const data = JSON.parse(saved)
-      if (data.date === today) {
-        return {
-          totalStudySeconds: data.studySeconds || 0,
-          completedPomodoros: data.pomodoros || 0,
-        }
+  const today = getLocalDate()
+  const data = storageGet<{ date?: string; studySeconds?: number; pomodoros?: number } | null>('focus-room-today', null)
+  if (data) {
+    if (data.date === today) {
+      return {
+        totalStudySeconds: data.studySeconds || 0,
+        completedPomodoros: data.pomodoros || 0,
       }
-      if (data.date && data.studySeconds > 0) archiveSession(data)
     }
-  } catch {}
+    if (data.date && (data.studySeconds ?? 0) > 0) archiveSession(data as StudySession)
+  }
   return {}
 }
 
 function saveTodayData(studySeconds: number, pomodoros: number) {
-  try {
-    const today = new Date().toISOString().slice(0, 10)
-    localStorage.setItem('focus-room-today', JSON.stringify({
-      date: today, studySeconds, pomodoros,
-    }))
-  } catch {}
+  const today = getLocalDate()
+  storageSet('focus-room-today', { date: today, studySeconds, pomodoros })
 }
 
 function archiveSession(session: StudySession) {
-  try {
-    const history = JSON.parse(localStorage.getItem('focus-room-history') || '[]')
-    const idx = history.findIndex((h: StudySession) => h.date === session.date)
-    if (idx >= 0) {
-      history[idx].studySeconds += session.studySeconds
-      history[idx].pomodoros += session.pomodoros
-    } else {
-      history.push(session)
-    }
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - 30)
-    const cutoffStr = cutoff.toISOString().slice(0, 10)
-    localStorage.setItem('focus-room-history',
-      JSON.stringify(history.filter((h: StudySession) => h.date >= cutoffStr)))
-  } catch {}
+  const history = storageGet<StudySession[]>('focus-room-history', [])
+  const idx = history.findIndex(h => h.date === session.date)
+  if (idx >= 0) {
+    history[idx].studySeconds += session.studySeconds
+    history[idx].pomodoros += session.pomodoros
+  } else {
+    history.push(session)
+  }
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - 90)
+  const cutoffStr = `${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,'0')}-${String(cutoff.getDate()).padStart(2,'0')}`
+  storageSet('focus-room-history', history.filter(h => h.date >= cutoffStr))
 }
 
 export function getStudyHistory(): StudySession[] {
   if (typeof window === 'undefined') return []
-  try { return JSON.parse(localStorage.getItem('focus-room-history') || '[]') }
-  catch { return [] }
+  return storageGet<StudySession[]>('focus-room-history', [])
 }
 
 export function useTimer() {
@@ -137,7 +128,7 @@ export function useTimer() {
   useEffect(() => {
     if (!state.isRunning) { clearTimer(); return }
 
-    intervalRef.current = setInterval(() => {
+    const tick = () => {
       setState(prev => {
         if (prev.mode === 'stopwatch') {
           return { ...prev, seconds: prev.seconds + 1, totalStudySeconds: prev.totalStudySeconds + 1 }
@@ -146,7 +137,6 @@ export function useTimer() {
         if (prev.seconds <= 1) {
           if (prev.mode === 'pomodoro') {
             if (prev.pomodoroPhase === 'work') {
-              // 工作结束 → 休息
               const newPomodoros = prev.completedPomodoros + 1
               const isLongBreak = newPomodoros % settingsRef.current.longBreakInterval === 0
               const breakSecs = isLongBreak
@@ -162,7 +152,6 @@ export function useTimer() {
                 notify: true,
               }
             } else {
-              // 休息结束 → 工作
               const workSecs = settingsRef.current.pomodoroMinutes * 60
               return {
                 ...prev,
@@ -184,9 +173,69 @@ export function useTimer() {
             ? prev.totalStudySeconds + 1 : prev.totalStudySeconds,
         }
       })
-    }, 1000)
+    }
 
-    return clearTimer
+    intervalRef.current = setInterval(tick, 1000)
+
+    // 页面不可见时暂停 interval，可见时补偿错过的秒数
+    let hiddenAt: number | null = null
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        hiddenAt = Date.now()
+        clearTimer()
+      } else if (hiddenAt) {
+        const elapsed = Math.floor((Date.now() - hiddenAt) / 1000)
+        hiddenAt = null
+        // 补偿错过的秒数（最多补偿 300 秒，防止长时间后台后大量补偿）
+        const capped = Math.min(elapsed, 300)
+        setState(prev => {
+          let s = prev.seconds
+          let study = prev.totalStudySeconds
+          let pomodoros = prev.completedPomodoros
+          let phase = prev.pomodoroPhase
+          let total = prev.totalSeconds
+          let mode = prev.mode
+          let notified = false
+
+          for (let i = 0; i < capped; i++) {
+            if (mode === 'stopwatch') {
+              s++; study++
+            } else {
+              if (s <= 1) {
+                if (mode === 'pomodoro') {
+                  if (phase === 'work') {
+                    pomodoros++
+                    const isLong = pomodoros % settingsRef.current.longBreakInterval === 0
+                    phase = isLong ? 'longBreak' : 'break'
+                    total = (isLong ? settingsRef.current.longBreakMinutes : settingsRef.current.breakMinutes) * 60
+                    s = total
+                    notified = true
+                  } else {
+                    phase = 'work'
+                    total = settingsRef.current.pomodoroMinutes * 60
+                    s = total
+                    notified = true
+                  }
+                } else {
+                  s = 0; notified = true
+                }
+              } else {
+                s--
+                if (phase === 'work') study++
+              }
+            }
+          }
+          return { ...prev, seconds: s, totalStudySeconds: study, completedPomodoros: pomodoros, pomodoroPhase: phase, totalSeconds: total, notify: notified }
+        })
+        intervalRef.current = setInterval(tick, 1000)
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    return () => {
+      clearTimer()
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
   }, [state.isRunning, state.mode, state.pomodoroPhase, clearTimer])
 
   const clearNotify = useCallback(() => setState(prev => ({ ...prev, notify: false })), [])

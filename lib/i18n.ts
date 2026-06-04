@@ -76,6 +76,110 @@ const translations = {
     'sound.totalSizeError': '自定义音效总大小不能超过 5MB',
     'sound.formatError': '不支持的音频格式',
     'shortcut.dismiss': '不再显示',
+
+    // TopNav
+    'nav.backToScenes': '返回场景',
+    'nav.tools': '专注工具',
+    'nav.memo': '备忘录',
+    'nav.stats': '学习统计',
+    'nav.calendar': '学习日历',
+    'nav.music': '纯音乐',
+    'nav.contact': '联系我们',
+    'nav.clearScreen': '清屏',
+
+    // BottomBar
+    'bar.scene': '场景',
+    'bar.sound': '声音',
+    'bar.mute': '静音',
+    'bar.unmute': '取消静音',
+    'bar.settings': '设置',
+    'bar.fullscreen': '全屏',
+    'bar.prevScene': '上一个场景',
+    'bar.nextScene': '下一个场景',
+    'bar.sleepTimer': '睡眠定时',
+    'bar.sleepOff': '关闭',
+    'bar.sleep30': '30 分钟',
+    'bar.sleep60': '60 分钟',
+    'bar.sleep90': '90 分钟',
+
+    // FocusView
+    'focus.step03': 'STEP 03 · POMODORO',
+    'focus.clearHint': '双击屏幕或按 Esc 退出清屏',
+
+    // Timer
+    'timer.pomodoro': '番茄钟',
+    'timer.stopwatch': '计时器',
+    'timer.countdown': '倒计时',
+    'timer.focusing': '📚 专注中',
+    'timer.longBreak': '🌿 长休息',
+    'timer.shortBreak': '☕ 短休息',
+    'timer.completed': '已完成',
+    'timer.pomodoroCount': '个番茄',
+    'timer.todayStudy': '今日已学习',
+    'timer.pageTitle': 'Focus Room | 沉浸式自习室',
+
+    // Focus completion report
+    'report.title': '🍅 专注完成！',
+    'report.todayPomodoros': '今日已完成 X 个番茄',
+    'report.todayStudy': '今日累计学习 XX:XX',
+    'report.clickToDismiss': '点击关闭',
+
+    // ScenePicker
+    'picker.backToCover': '返回封面',
+    'picker.chooseWindow': 'CHOOSE YOUR WINDOW',
+    'picker.step02': 'STEP 02 · 选一扇窗',
+    'picker.findPlace': '找一个\n此刻想停留的地方',
+    'picker.sceneTip': '每扇窗外都有不同的光。选好之后，剩下的交给时间。',
+    'picker.start': '就这里，开始专注 →',
+    'picker.music': '音乐',
+
+    // Landing
+    'landing.tagline': 'BREATHE · FOCUS · FLOW',
+    'landing.title': '世界很吵\n给自己一间安静的房间',
+    'landing.subtitle': '选一扇窗，调一盏灯，放一段属于此刻的声音。时间是你的，节奏也是。',
+    'landing.cta': '选一扇窗',
+    'landing.hint': '按 Enter 也可以',
+
+    // FocusTools
+    'tools.title': 'Focus Tools',
+    'tools.sectionTitle': '常用学习入口',
+    'tools.sectionDesc': '保存课程、笔记、词典、资料站。',
+    'tools.namePlaceholder': '名称',
+    'tools.urlPlaceholder': '链接',
+    'tools.add': '添加',
+    'tools.nameAndUrlRequired': '名称和链接都不能为空',
+    'tools.urlInvalid': '链接必须以 http:// 或 https:// 开头',
+
+    // MemoPanel
+    'memo.title': 'Notes',
+    'memo.heading': 'To do list',
+    'memo.newReminder': 'New reminder...',
+    'memo.writeHint': 'Write down the next thing to finish.',
+    'memo.clearCompleted': 'Clear completed',
+    'memo.emptyDone': 'No completed tasks yet.',
+    'memo.emptyActive': 'All done! Nothing active.',
+    'memo.emptyAll': 'Add a reminder to get started.',
+    'memo.activeCount': 'active',
+    'memo.completedCount': 'completed',
+
+    // DailyGoal
+    'goal.dailyTarget': '每日目标',
+
+    // Sound mixer
+    'sound.category': '白噪音',
+
+    // Onboarding
+    'onboard.step1': '选择一个窗外场景',
+    'onboard.step1desc': '每个场景都有独特的光线和氛围',
+    'onboard.step2': '打开你喜欢的白噪音',
+    'onboard.step2desc': '雨声、海浪、森林...找到属于你的声音',
+    'onboard.step3': '开始你的专注时间',
+    'onboard.step3desc': '番茄钟、正计时或倒计时，自由选择',
+    'onboard.next': '下一步',
+    'onboard.start': '开始吧',
+
+    // Calendar active days
+    'calendar.activeDays': '天',
   },
   en: {
     // Tab names / toolbar
@@ -150,6 +254,110 @@ const translations = {
     'sound.totalSizeError': 'Total custom sounds must be under 5MB',
     'sound.formatError': 'Unsupported audio format',
     'shortcut.dismiss': 'Don\'t show again',
+
+    // TopNav
+    'nav.backToScenes': 'Back to Scenes',
+    'nav.tools': 'Tools',
+    'nav.memo': 'Notes',
+    'nav.stats': 'Statistics',
+    'nav.calendar': 'Calendar',
+    'nav.music': 'Music',
+    'nav.contact': 'Contact',
+    'nav.clearScreen': 'Clear Screen',
+
+    // BottomBar
+    'bar.scene': 'SCENE',
+    'bar.sound': 'SOUND',
+    'bar.mute': 'Mute',
+    'bar.unmute': 'Unmute',
+    'bar.settings': 'Settings',
+    'bar.fullscreen': 'Fullscreen',
+    'bar.prevScene': 'Previous scene',
+    'bar.nextScene': 'Next scene',
+    'bar.sleepTimer': 'Sleep Timer',
+    'bar.sleepOff': 'Off',
+    'bar.sleep30': '30 min',
+    'bar.sleep60': '60 min',
+    'bar.sleep90': '90 min',
+
+    // FocusView
+    'focus.step03': 'STEP 03 · POMODORO',
+    'focus.clearHint': 'Double-click or press Esc to exit clear screen',
+
+    // Timer
+    'timer.pomodoro': 'Pomodoro',
+    'timer.stopwatch': 'Stopwatch',
+    'timer.countdown': 'Countdown',
+    'timer.focusing': '📚 Focusing',
+    'timer.longBreak': '🌿 Long Break',
+    'timer.shortBreak': '☕ Short Break',
+    'timer.completed': 'completed',
+    'timer.pomodoroCount': 'pomodoros',
+    'timer.todayStudy': 'Today\'s study',
+    'timer.pageTitle': 'Focus Room | Immersive Study',
+
+    // Focus completion report
+    'report.title': '🍅 Focus Complete!',
+    'report.todayPomodoros': 'Today: X pomodoros completed',
+    'report.todayStudy': 'Total study today: XX:XX',
+    'report.clickToDismiss': 'Click to dismiss',
+
+    // ScenePicker
+    'picker.backToCover': 'Back to Cover',
+    'picker.chooseWindow': 'CHOOSE YOUR WINDOW',
+    'picker.step02': 'STEP 02 · Choose a Window',
+    'picker.findPlace': 'Find a place\nyou want to stay',
+    'picker.sceneTip': 'Each window offers a different light. Choose, and leave the rest to time.',
+    'picker.start': 'This one, let\'s focus →',
+    'picker.music': 'Music',
+
+    // Landing
+    'landing.tagline': 'BREATHE · FOCUS · FLOW',
+    'landing.title': 'The world is noisy\nGive yourself a quiet room',
+    'landing.subtitle': 'Pick a window, adjust the light, play a sound that belongs to this moment. Time is yours, so is the rhythm.',
+    'landing.cta': 'Pick a window',
+    'landing.hint': 'Press Enter to start',
+
+    // FocusTools
+    'tools.title': 'Focus Tools',
+    'tools.sectionTitle': 'Quick Links',
+    'tools.sectionDesc': 'Save courses, notes, dictionaries, and resources.',
+    'tools.namePlaceholder': 'Name',
+    'tools.urlPlaceholder': 'URL',
+    'tools.add': 'Add',
+    'tools.nameAndUrlRequired': 'Name and URL are required',
+    'tools.urlInvalid': 'URL must start with http:// or https://',
+
+    // MemoPanel
+    'memo.title': 'Notes',
+    'memo.heading': 'To do list',
+    'memo.newReminder': 'New reminder...',
+    'memo.writeHint': 'Write down the next thing to finish.',
+    'memo.clearCompleted': 'Clear completed',
+    'memo.emptyDone': 'No completed tasks yet.',
+    'memo.emptyActive': 'All done! Nothing active.',
+    'memo.emptyAll': 'Add a reminder to get started.',
+    'memo.activeCount': 'active',
+    'memo.completedCount': 'completed',
+
+    // DailyGoal
+    'goal.dailyTarget': 'Daily Goal',
+
+    // Sound mixer
+    'sound.category': 'White Noise',
+
+    // Onboarding
+    'onboard.step1': 'Choose a window scene',
+    'onboard.step1desc': 'Each scene has unique light and atmosphere',
+    'onboard.step2': 'Turn on your favorite white noise',
+    'onboard.step2desc': 'Rain, ocean waves, forest... find your sound',
+    'onboard.step3': 'Start your focus time',
+    'onboard.step3desc': 'Pomodoro, stopwatch, or countdown, your choice',
+    'onboard.next': 'Next',
+    'onboard.start': 'Let\'s go',
+
+    // Calendar active days
+    'calendar.activeDays': 'days',
   },
 } as const
 

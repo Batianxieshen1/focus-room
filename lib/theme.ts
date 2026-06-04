@@ -22,9 +22,10 @@ export function setTheme(theme: Theme): void {
 
 export function applyThemeClass(theme: Theme) {
   if (typeof document === 'undefined') return
+  const el = document.documentElement
   if (theme === 'light') {
-    document.body.classList.add('light-theme')
+    el.classList.add('light-theme')
   } else {
-    document.body.classList.remove('light-theme')
+    el.classList.remove('light-theme')
   }
 }

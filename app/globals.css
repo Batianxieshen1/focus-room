@@ -11,6 +11,11 @@
   --text-muted: rgba(255, 255, 255, 0.4);
   --accent: #525fce;
   --accent-warm: #f2c75a;
+  /* 常用交互态透明度 */
+  --surface-subtle: rgba(255, 255, 255, 0.04);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --surface-active: rgba(255, 255, 255, 0.14);
+  --overlay: rgba(0, 0, 0, 0.5);
 }
 
 @theme inline {
@@ -30,9 +35,8 @@ html, body {
   overflow: hidden;
   background: #000;
   color: #fff;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang SC',
-    'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC',
-    'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'PingFang SC',
+    'Microsoft YaHei', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -234,6 +238,20 @@ input[type="range"]::-moz-range-thumb {
   50% { opacity: 0.5; }
 }
 
+@keyframes breathe {
+  0%, 100% { transform: scale(0.8); opacity: 0.3; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
+
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out;
 }
@@ -293,6 +311,22 @@ input[type="range"]::-moz-range-thumb {
   animation: confetti 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
+/* ==================== Celebration Pulse ==================== */
+@keyframes celebrationPulse {
+  0% {
+    opacity: 1;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
 /* ==================== Toast Fade ==================== */
 @keyframes toastIn {
   from { opacity: 0; transform: translateX(-50%) translateY(20px); }
@@ -312,14 +346,39 @@ input[type="range"]::-moz-range-thumb {
   animation: toastOut 0.4s ease-in forwards;
 }
 
+/* ==================== Scene Picker Animations ==================== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ==================== Light Theme ==================== */
-body.light-theme {
+html.light-theme {
   background: #f0f0f0;
   color: #1a1a1a;
 }
 
-body.light-theme :root,
-body.light-theme {
+html.light-theme :root,
+html.light-theme {
   --background: #f0f0f0;
   --foreground: #1a1a1a;
   --glass-bg: rgba(255, 255, 255, 0.75);
@@ -327,45 +386,57 @@ body.light-theme {
   --text-primary: rgba(0, 0, 0, 0.9);
   --text-secondary: rgba(0, 0, 0, 0.6);
   --text-muted: rgba(0, 0, 0, 0.35);
+  --surface-subtle: rgba(0, 0, 0, 0.04);
+  --surface-hover: rgba(0, 0, 0, 0.08);
+  --surface-active: rgba(0, 0, 0, 0.1);
+  --overlay: rgba(0, 0, 0, 0.3);
 }
 
-body.light-theme .glass-subtle {
+/* Light theme: .glass class (TopNav) */
+html.light-theme .glass {
+  background: rgba(255, 255, 255, 0.75);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+html.light-theme .glass-subtle {
   background: rgba(255, 255, 255, 0.45);
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-body.light-theme .glass-strong {
+html.light-theme .glass-strong {
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-body.light-theme .btn-ghost {
+html.light-theme .btn-ghost {
   color: var(--text-secondary);
 }
-body.light-theme .btn-ghost:hover {
+html.light-theme .btn-ghost:hover {
   color: var(--text-primary);
 }
 
-body.light-theme .btn-pill {
+html.light-theme .btn-pill {
   background: rgba(0, 0, 0, 0.06);
   color: var(--text-secondary);
 }
-body.light-theme .btn-pill:hover {
+html.light-theme .btn-pill:hover {
   background: rgba(0, 0, 0, 0.1);
   color: var(--text-primary);
 }
-body.light-theme .btn-pill.active {
+html.light-theme .btn-pill.active {
   background: rgba(0, 0, 0, 0.1);
   color: var(--text-primary);
   border-color: rgba(0, 0, 0, 0.12);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
-body.light-theme .btn-primary {
+html.light-theme .btn-primary {
   color: #ffffff;
 }
 
-body.light-theme .overlay-vignette {
+html.light-theme .overlay-vignette {
   background: radial-gradient(
     ellipse at center,
     transparent 40%,
@@ -373,7 +444,7 @@ body.light-theme .overlay-vignette {
   );
 }
 
-body.light-theme .overlay-bottom {
+html.light-theme .overlay-bottom {
   background: linear-gradient(
     to top,
     rgba(0, 0, 0, 0.12) 0%,
@@ -382,28 +453,43 @@ body.light-theme .overlay-bottom {
   );
 }
 
-body.light-theme ::-webkit-scrollbar-thumb {
+/* Light theme: celebration overlay (radial gradient should be lighter) */
+html.light-theme .celebration-overlay {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(251,191,36,0.15) 0%,
+    rgba(52,211,153,0.1) 40%,
+    transparent 70%
+  );
+}
+
+/* Light theme: ScenePicker dark overlay becomes lighter */
+html.light-theme .scene-picker-overlay {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+html.light-theme ::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.15);
 }
 
-body.light-theme ::-webkit-scrollbar-thumb:hover {
+html.light-theme ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.25);
 }
 
-body.light-theme input[type="range"]::-webkit-slider-runnable-track {
+html.light-theme input[type="range"]::-webkit-slider-runnable-track {
   background: rgba(0, 0, 0, 0.12);
 }
 
-body.light-theme input[type="range"]::-webkit-slider-thumb {
+html.light-theme input[type="range"]::-webkit-slider-thumb {
   background: rgba(0, 0, 0, 0.75);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-body.light-theme input[type="range"]::-moz-range-track {
+html.light-theme input[type="range"]::-moz-range-track {
   background: rgba(0, 0, 0, 0.12);
 }
 
-body.light-theme input[type="range"]::-moz-range-thumb {
+html.light-theme input[type="range"]::-moz-range-thumb {
   background: rgba(0, 0, 0, 0.75);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }

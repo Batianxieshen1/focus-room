@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect, createContext, useContext, ReactNode } from 'react'
+import { storageGet, storageSet } from '@/lib/storage'
 
 export interface Sound {
   id: string
@@ -42,30 +43,20 @@ const MAX_CUSTOM_SIZE = 5 * 1024 * 1024 // 5MB total
 
 function loadVolumes(): Record<string, number> {
   if (typeof window === 'undefined') return {}
-  try {
-    const saved = localStorage.getItem('focus-room-volumes')
-    return saved ? JSON.parse(saved) : {}
-  } catch { return {} }
+  return storageGet<Record<string, number>>('focus-room-volumes', {})
 }
 
 function saveVolumes(volumes: Record<string, number>) {
-  try {
-    localStorage.setItem('focus-room-volumes', JSON.stringify(volumes))
-  } catch {}
+  storageSet('focus-room-volumes', volumes)
 }
 
 function loadCustomSounds(): Omit<Sound, 'volume'>[] {
   if (typeof window === 'undefined') return []
-  try {
-    const saved = localStorage.getItem(CUSTOM_SOUNDS_KEY)
-    return saved ? JSON.parse(saved) : []
-  } catch { return [] }
+  return storageGet<Omit<Sound, 'volume'>[]>(CUSTOM_SOUNDS_KEY, [])
 }
 
 function saveCustomSounds(sounds: Omit<Sound, 'volume'>[]) {
-  try {
-    localStorage.setItem(CUSTOM_SOUNDS_KEY, JSON.stringify(sounds))
-  } catch {}
+  storageSet(CUSTOM_SOUNDS_KEY, sounds)
 }
 
 function getTotalCustomSize(): number {
@@ -90,14 +81,15 @@ function getInitialSounds(): Sound[] {
   return [...builtIn, ...customs]
 }
 
-// Fade volume over a duration using setInterval
+// Fade volume over a duration. Returns a cancel function to abort the fade.
 function fadeVolume(
   audio: HTMLAudioElement,
   from: number,
   to: number,
   durationMs: number
-): Promise<void> {
-  return new Promise((resolve) => {
+): { promise: Promise<void>; cancel: () => void } {
+  let cancelled = false
+  const promise = new Promise<void>((resolve) => {
     const steps = 15
     const intervalMs = durationMs / steps
     const delta = (to - from) / steps
@@ -105,6 +97,7 @@ function fadeVolume(
     audio.volume = from
 
     const timer = setInterval(() => {
+      if (cancelled) { clearInterval(timer); resolve(); return }
       step++
       if (step >= steps) {
         audio.volume = to
@@ -115,21 +108,28 @@ function fadeVolume(
       }
     }, intervalMs)
   })
+  return { promise, cancel: () => { cancelled = true } }
 }
 
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [sounds, setSounds] = useState<Sound[]>(getInitialSounds)
   const audioMapRef = useRef<Map<string, HTMLAudioElement>>(new Map())
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  // Track active fade intervals so we can cancel on rapid toggles
-  const fadeTimersRef = useRef<Map<string, NodeJS.Timeout[]>>(new Map())
+  // Track active fade cancel functions per sound ID
+  const fadeCancelsRef = useRef<Map<string, (() => void)[]>>(new Map())
 
   useEffect(() => {
     return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
-      // Cancel all fade timers
-      fadeTimersRef.current.forEach(timers => timers.forEach(t => clearInterval(t as unknown as number)))
-      fadeTimersRef.current.clear()
+      // Flush pending volume save before cleanup (e.g. on page refresh)
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+        const volumes: Record<string, number> = {}
+        soundsRef.current.forEach(s => { volumes[s.id] = s.volume })
+        saveVolumes(volumes)
+      }
+      // Cancel all active fades
+      fadeCancelsRef.current.forEach(cancels => cancels.forEach(cancel => cancel()))
+      fadeCancelsRef.current.clear()
       audioMapRef.current.forEach(a => { a.pause(); a.src = '' })
       audioMapRef.current.clear()
     }
@@ -155,31 +155,43 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Cancel any active fades for a given sound ID
+  const cancelFades = useCallback((id: string) => {
+    const cancels = fadeCancelsRef.current.get(id)
+    if (cancels) { cancels.forEach(c => c()); fadeCancelsRef.current.delete(id) }
+  }, [])
+
+  const registerFade = useCallback((id: string, cancel: () => void) => {
+    const existing = fadeCancelsRef.current.get(id) || []
+    existing.push(cancel)
+    fadeCancelsRef.current.set(id, existing)
+  }, [])
+
   const toggleSound = useCallback((id: string) => {
+    // Cancel any in-progress fade for this sound
+    cancelFades(id)
+
     setSounds(prev => prev.map(s => {
       if (s.id !== id) return s
       const audio = getAudio(s)
 
       if (!s.isPlaying) {
-        // Ensure the audio source is loaded before playing
         ensureLoaded(audio, s.file)
-        // Turning ON: fade in from 0 to target over 500ms
         const targetVol = s.volume / 100
         audio.volume = 0
         audio.play().catch(() => {})
-        fadeVolume(audio, 0, targetVol, 500)
+        const { cancel } = fadeVolume(audio, 0, targetVol, 500)
+        registerFade(id, cancel)
         return { ...s, isPlaying: true }
       } else {
-        // Turning OFF: fade out from current to 0 over 300ms, then pause
         const currentVol = audio.volume
-        fadeVolume(audio, currentVol, 0, 300).then(() => {
-          audio.pause()
-          audio.currentTime = 0
-        })
+        const { promise, cancel } = fadeVolume(audio, currentVol, 0, 300)
+        registerFade(id, cancel)
+        promise.then(() => { audio.pause(); audio.currentTime = 0 })
         return { ...s, isPlaying: false }
       }
     }))
-  }, [getAudio])
+  }, [getAudio, cancelFades, registerFade])
 
   const soundsRef = useRef(sounds)
   soundsRef.current = sounds
@@ -208,34 +220,35 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const muteAll = useCallback(() => {
     setSounds(prev => prev.map(s => {
       if (s.isPlaying) {
+        cancelFades(s.id)
         const audio = audioMapRef.current.get(s.id)
         if (audio) {
-          // Quick fade out then pause
           const currentVol = audio.volume
-          fadeVolume(audio, currentVol, 0, 200).then(() => {
-            audio.pause()
-            audio.currentTime = 0
-          })
+          const { promise, cancel } = fadeVolume(audio, currentVol, 0, 200)
+          registerFade(s.id, cancel)
+          promise.then(() => { audio.pause(); audio.currentTime = 0 })
         }
       }
       return { ...s, isPlaying: false }
     }))
-  }, [])
+  }, [cancelFades, registerFade])
 
   const unmuteAll = useCallback(() => {
     setSounds(prev => prev.map(s => {
       if (!s.isPlaying && s.volume > 0) {
+        cancelFades(s.id)
         const audio = getAudio(s)
         ensureLoaded(audio, s.file)
         const targetVol = s.volume / 100
         audio.volume = 0
         audio.play().catch(() => {})
-        fadeVolume(audio, 0, targetVol, 500)
+        const { cancel } = fadeVolume(audio, 0, targetVol, 500)
+        registerFade(s.id, cancel)
         return { ...s, isPlaying: true }
       }
       return s
     }))
-  }, [getAudio])
+  }, [getAudio, cancelFades, registerFade])
 
   const addCustomSound = useCallback((name: string, dataUrl: string): boolean => {
     // Check individual file size (approximate from data URL length)
@@ -265,7 +278,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const removeCustomSound = useCallback((id: string) => {
-    // Stop if playing
+    cancelFades(id)
     const audio = audioMapRef.current.get(id)
     if (audio) {
       audio.pause()
@@ -277,7 +290,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
     const customSounds = loadCustomSounds().filter(s => s.id !== id)
     saveCustomSounds(customSounds)
-  }, [])
+  }, [cancelFades])
 
   return (
     <AudioContext.Provider value={{ sounds, toggleSound, setVolume, muteAll, unmuteAll, addCustomSound, removeCustomSound }}>

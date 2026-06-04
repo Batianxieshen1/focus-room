@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { t, getLocale, setLocale, Locale } from '@/lib/i18n'
 import { getTheme, setTheme, Theme } from '@/lib/theme'
+import RangeSlider from './ui/RangeSlider'
 
 interface Settings {
   pomodoroMinutes: number
@@ -74,73 +75,10 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
         <h2 className="text-lg font-medium text-white mb-6">{t('settings.title')}</h2>
 
         <div className="space-y-5">
-          {/* 番茄钟时长 */}
-          <div>
-            <label className="text-sm text-white/70 mb-2 block">{t('settings.pomodoro')}</label>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="5"
-                max="60"
-                step="5"
-                value={settings.pomodoroMinutes}
-                onChange={e => updateSetting('pomodoroMinutes', Number(e.target.value))}
-                className="flex-1"
-              />
-              <span className="text-sm text-white/80 w-12 text-right tabular-nums">{settings.pomodoroMinutes}m</span>
-            </div>
-          </div>
-
-          {/* 休息时长 */}
-          <div>
-            <label className="text-sm text-white/70 mb-2 block">{t('settings.shortBreak')}</label>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="1"
-                max="15"
-                step="1"
-                value={settings.breakMinutes}
-                onChange={e => updateSetting('breakMinutes', Number(e.target.value))}
-                className="flex-1"
-              />
-              <span className="text-sm text-white/80 w-12 text-right tabular-nums">{settings.breakMinutes}m</span>
-            </div>
-          </div>
-
-          {/* 长休息时长 */}
-          <div>
-            <label className="text-sm text-white/70 mb-2 block">{t('settings.longBreak')}</label>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="10"
-                max="30"
-                step="5"
-                value={settings.longBreakMinutes}
-                onChange={e => updateSetting('longBreakMinutes', Number(e.target.value))}
-                className="flex-1"
-              />
-              <span className="text-sm text-white/80 w-12 text-right tabular-nums">{settings.longBreakMinutes}m</span>
-            </div>
-          </div>
-
-          {/* 长休息间隔 */}
-          <div>
-            <label className="text-sm text-white/70 mb-2 block">{t('settings.longBreakInterval')}</label>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="2"
-                max="6"
-                step="1"
-                value={settings.longBreakInterval}
-                onChange={e => updateSetting('longBreakInterval', Number(e.target.value))}
-                className="flex-1"
-              />
-              <span className="text-sm text-white/80 w-12 text-right tabular-nums">{settings.longBreakInterval}</span>
-            </div>
-          </div>
+          <RangeSlider label={t('settings.pomodoro')} value={settings.pomodoroMinutes} min={5} max={60} step={5} unit="m" onChange={v => updateSetting('pomodoroMinutes', v)} />
+          <RangeSlider label={t('settings.shortBreak')} value={settings.breakMinutes} min={1} max={15} unit="m" onChange={v => updateSetting('breakMinutes', v)} />
+          <RangeSlider label={t('settings.longBreak')} value={settings.longBreakMinutes} min={10} max={30} step={5} unit="m" onChange={v => updateSetting('longBreakMinutes', v)} />
+          <RangeSlider label={t('settings.longBreakInterval')} value={settings.longBreakInterval} min={2} max={6} onChange={v => updateSetting('longBreakInterval', v)} />
 
           {/* Language toggle */}
           <div>

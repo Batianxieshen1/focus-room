@@ -15,8 +15,13 @@ export function useKeyboard({ onToggle, onReset, onModeChange, onMuteToggle }: P
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // 忽略输入框中的按键
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      // 忽略输入框、文本域、可编辑元素中的按键
+      const target = e.target as HTMLElement
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target.isContentEditable
+      ) return
 
       const { onToggle, onReset, onModeChange, onMuteToggle } = callbacksRef.current
 

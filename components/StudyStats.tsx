@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react'
 import { getStudyHistory, StudySession } from '@/hooks/useTimer'
 import { t } from '@/lib/i18n'
 
+function getLocalDate(d?: Date): string {
+  const dt = d || new Date()
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`
+}
+
 interface Props {
   onClose: () => void
 }
@@ -26,7 +31,7 @@ export default function StudyStats({ onClose }: Props) {
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date()
     d.setDate(d.getDate() - (6 - i))
-    return d.toISOString().slice(0, 10)
+    return getLocalDate(d)
   })
 
   const maxSeconds = Math.max(
@@ -58,7 +63,7 @@ export default function StudyStats({ onClose }: Props) {
 
     let total = 0
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().slice(0, 10)
+      const dateStr = getLocalDate(d)
       const session = history.find(h => h.date === dateStr)
       total += session?.studySeconds || 0
     }
@@ -107,7 +112,7 @@ export default function StudyStats({ onClose }: Props) {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `focus-room-backup-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `focus-room-backup-${getLocalDate()}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -152,8 +157,8 @@ export default function StudyStats({ onClose }: Props) {
         }
         // Sort by date and keep last 30 days
         const cutoff = new Date()
-        cutoff.setDate(cutoff.getDate() - 30)
-        const cutoffStr = cutoff.toISOString().slice(0, 10)
+        cutoff.setDate(cutoff.getDate() - 90)
+        const cutoffStr = getLocalDate(cutoff)
         const filtered = merged
           .filter(h => h.date >= cutoffStr)
           .sort((a, b) => a.date.localeCompare(b.date))
@@ -219,6 +224,11 @@ export default function StudyStats({ onClose }: Props) {
         {/* 7-day bar chart */}
         <div className="mb-6">
           <div className="text-[11px] text-white/50 tracking-wider mb-4 uppercase">{t('stats.last7Days')}</div>
+          {history.length === 0 && (
+            <div className="text-center py-2 mb-2">
+              <span className="text-[11px] text-white/30">🎯 开始你的第一次专注吧！</span>
+            </div>
+          )}
           <div className="flex items-end gap-1.5 h-28">
             {last7Days.map(date => {
               const session = history.find(h => h.date === date)
@@ -243,7 +253,7 @@ export default function StudyStats({ onClose }: Props) {
                     />
                   </div>
                   <span className={`text-[10px] ${
-                    date === new Date().toISOString().slice(0, 10)
+                    date === getLocalDate()
                       ? 'text-white/70'
                       : 'text-white/40'
                   }`}>
@@ -272,7 +282,7 @@ export default function StudyStats({ onClose }: Props) {
                         week.total > 0
                           ? i === 3
                             ? 'bg-gradient-to-t from-blue-400/50 to-blue-300/25'
-                            : 'bg-gradient-to-t from-white/15 to-white/08'
+                            : 'bg-gradient-to-t from-white/15 to-white/[0.08]'
                           : 'bg-white/[0.04]'
                       }`}
                       style={{ height: `${Math.max(height, 3)}%` }}
