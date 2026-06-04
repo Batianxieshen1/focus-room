@@ -60,19 +60,19 @@ export default function BottomBar({
   }
 
   return (
-    <div className="fixed bottom-6 left-1/2 z-30 -translate-x-1/2">
-      <div className="flex items-center gap-3 rounded-full glass-strong px-6 py-3 shadow-lg">
+    <div className="fixed bottom-3 left-1/2 z-30 -translate-x-1/2 sm:bottom-6">
+      <div className="flex items-center gap-2 rounded-full glass-strong px-3 py-2 shadow-lg sm:gap-3 sm:px-6 sm:py-3">
         {/* Prev scene arrow */}
         <button
           onClick={onPrevScene}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-xl font-light text-white/60 transition-all duration-200 hover:bg-white/15 hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-xl font-light text-white/60 transition-all duration-200 hover:bg-white/15 hover:text-white"
           aria-label={t('bar.prevScene')}
         >
           ‹
         </button>
 
         {/* Scene info */}
-        <div className="flex flex-col items-center gap-0">
+        <div className="hidden flex-col items-center gap-0 sm:flex">
           <span className="text-[10px] leading-tight text-white/40">{t('bar.scene')}</span>
           <span className="whitespace-nowrap text-sm font-medium leading-tight text-white/90">
             {sceneName}
@@ -86,20 +86,25 @@ export default function BottomBar({
           </span>
         </div>
 
+        {/* Mobile: scene name only */}
+        <span className="whitespace-nowrap text-xs font-medium text-white/80 sm:hidden">
+          {sceneName}
+        </span>
+
         {/* Next scene arrow */}
         <button
           onClick={onNextScene}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-xl font-light text-white/60 transition-all duration-200 hover:bg-white/15 hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-xl font-light text-white/60 transition-all duration-200 hover:bg-white/15 hover:text-white"
           aria-label={t('bar.nextScene')}
         >
           ›
         </button>
 
         {/* Divider */}
-        <div className="mx-1 h-6 w-px bg-white/15" />
+        <div className="mx-0.5 h-6 w-px bg-white/15 sm:mx-1" />
 
         {/* Sound section */}
-        <div className="flex flex-col items-center gap-0">
+        <div className="hidden flex-col items-center gap-0 sm:flex">
           <span className="text-[10px] leading-tight text-white/40">{t('bar.sound')}</span>
           <div className="flex items-center gap-2">
             {/* Mute toggle */}
@@ -149,7 +154,7 @@ export default function BottomBar({
               max={100}
               value={isMuted ? 0 : volume}
               onChange={(e) => onVolumeChange(Number(e.target.value))}
-              className="volume-slider w-20 cursor-pointer accent-white/60"
+              className="volume-slider w-16 cursor-pointer accent-white/60 sm:w-20"
               style={{
                 background: `linear-gradient(to right, rgba(255,255,255,0.6) ${isMuted ? 0 : volume}%, rgba(255,255,255,0.1) ${isMuted ? 0 : volume}%)`,
                 height: '3px',
@@ -161,14 +166,36 @@ export default function BottomBar({
           </div>
         </div>
 
+        {/* Mobile mute button */}
+        <button
+          onClick={onToggleMute}
+          className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 sm:hidden"
+          aria-label={isMuted ? t('bar.unmute') : t('bar.mute')}
+        >
+          {isMuted ? (
+            <svg className="h-4 w-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" opacity="0.2" />
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          ) : (
+            <svg className="h-4 w-4 text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" opacity="0.2" />
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+            </svg>
+          )}
+        </button>
+
         {/* Divider */}
-        <div className="mx-1 h-6 w-px bg-white/15" />
+        <div className="mx-0.5 h-6 w-px bg-white/15 sm:mx-1" />
 
         {/* Sleep timer button */}
         <div className="relative" ref={sleepMenuRef}>
           <button
             onClick={() => setShowSleepMenu(prev => !prev)}
-            className={`flex h-8 items-center gap-1.5 rounded-full px-2.5 transition-all duration-200 hover:bg-white/15 ${
+            className={`flex h-8 items-center justify-center gap-1.5 rounded-full px-1.5 transition-all duration-200 hover:bg-white/15 sm:px-2.5 ${
               sleepTimerRemaining !== null ? 'text-amber-300/90' : 'text-white/50'
             }`}
             aria-label={t('bar.sleepTimer')}
@@ -219,12 +246,12 @@ export default function BottomBar({
         </div>
 
         {/* Divider */}
-        <div className="mx-1 h-6 w-px bg-white/15" />
+        <div className="mx-0.5 h-6 w-px bg-white/15 sm:mx-1" />
 
         {/* Settings button */}
         <button
           onClick={onOpenSettings}
-          className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15"
+          className="hidden h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 sm:flex"
           aria-label={t('bar.settings')}
         >
           <svg
@@ -244,7 +271,7 @@ export default function BottomBar({
         {/* Fullscreen button */}
         <button
           onClick={onFullscreen}
-          className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15"
+          className="hidden h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 sm:flex"
           aria-label={t('bar.fullscreen')}
         >
           <svg
@@ -264,10 +291,12 @@ export default function BottomBar({
         </button>
 
         {/* Divider */}
-        <div className="mx-1 h-6 w-px bg-white/15" />
+        <div className="hidden h-6 w-px bg-white/15 sm:mx-1 sm:block" />
 
-        {/* Keyboard shortcuts hint */}
-        <ShortcutIndicator inline />
+        {/* Keyboard shortcuts hint - hidden on mobile */}
+        <div className="hidden sm:block">
+          <ShortcutIndicator inline />
+        </div>
       </div>
 
       {/* Inline style for range slider thumb */}

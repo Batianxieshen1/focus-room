@@ -42,7 +42,7 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
       />
 
       {/* Top bar */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-4">
+      <header className="relative z-10 flex items-center justify-between px-3 py-3 sm:px-6 sm:py-4">
         <button
           onClick={onBack}
           className="flex items-center gap-2 px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
@@ -52,7 +52,7 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
         </button>
 
         <h1
-          className="text-xs tracking-[0.3em] uppercase text-white/60 font-medium"
+          className="text-[10px] tracking-[0.2em] uppercase text-white/60 font-medium sm:text-xs sm:tracking-[0.3em]"
           style={{ letterSpacing: '0.3em' }}
         >
           CHOOSE YOUR WINDOW
@@ -65,9 +65,9 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
       </header>
 
       {/* Main content */}
-      <main className="relative z-10 flex flex-1 overflow-hidden">
-        {/* Left side - text content */}
-        <div className="w-1/2 flex flex-col justify-center px-16 animate-[fadeInUp_0.6s_ease-out]">
+      <main className="relative z-10 flex flex-col flex-1 overflow-hidden sm:flex-row sm:overflow-hidden">
+        {/* Left side - text content (hidden on mobile, shown on sm+) */}
+        <div className="hidden sm:flex sm:w-1/2 sm:flex-col sm:justify-center sm:px-16 animate-[fadeInUp_0.6s_ease-out]">
           <p className="text-xs tracking-[0.2em] uppercase text-white/50 mb-6 font-medium">
             {t('picker.step02')}
           </p>
@@ -84,9 +84,19 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
           </p>
         </div>
 
+        {/* Mobile compact heading */}
+        <div className="px-4 pt-2 pb-1 sm:hidden">
+          <h2
+            className="text-xl leading-tight font-extralight mb-1 whitespace-pre-line"
+            style={{ fontWeight: 200 }}
+          >
+            {t('picker.findPlace')}
+          </h2>
+        </div>
+
         {/* Right side - scene cards */}
-        <div className="w-1/2 flex flex-col justify-center items-center px-8">
-          <div className="w-full max-w-lg space-y-3 overflow-y-auto max-h-[calc(100vh-180px)] pr-2 custom-scrollbar">
+        <div className="w-full flex flex-col items-center px-4 pb-24 sm:w-1/2 sm:flex-col sm:justify-center sm:items-center sm:px-8 sm:pb-0">
+          <div className="w-full max-w-lg space-y-3 overflow-y-auto max-h-[calc(100vh-320px)] pr-2 sm:max-h-[calc(100vh-180px)] custom-scrollbar">
             {SCENES.map((scene, index) => {
               const isSelected = scene.id === currentSceneId
               return (
@@ -138,7 +148,7 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
       </main>
 
       {/* Bottom button */}
-      <footer className="relative z-10 px-16 pb-8">
+      <footer className="fixed bottom-0 left-0 right-0 z-10 px-4 pb-6 pt-3 safe-bottom sm:px-16 sm:pb-8 sm:static">
         <button
           onClick={handleEnter}
           className="w-full max-w-2xl mx-auto block py-4 rounded-xl text-center text-base font-medium

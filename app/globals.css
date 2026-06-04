@@ -501,13 +501,36 @@ html.light-theme input[type="range"]::-moz-range-thumb {
   }
 
   .font-timer {
-    font-size: clamp(2rem, 12vw, 3.5rem);
+    font-size: clamp(2rem, 12vw, 3rem);
   }
 }
 
 /* Safe area for notched phones */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
 @supports (padding: env(safe-area-inset-bottom)) {
   .safe-bottom {
-    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Prevent overscroll bounce on iOS */
+body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Larger touch targets on mobile */
+@media (max-width: 640px) {
+  button, [role="button"], input[type="range"] {
+    touch-action: manipulation;
+  }
+
+  /* Minimum 44px touch target */
+  .btn-pill, .btn-ghost {
+    min-height: 44px;
+    min-width: 44px;
   }
 }

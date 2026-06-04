@@ -196,6 +196,64 @@ export default function FocusView({
     }
   }, [])
 
+  // Touch swipe for scene switching
+  useEffect(() => {
+    let touchStartX = 0
+    let touchStartY = 0
+    let isSwiping = false
+
+    const handleTouchStart = (e: Event) => {
+      const te = e as TouchEvent
+      touchStartX = te.touches[0].clientX
+      touchStartY = te.touches[0].clientY
+      isSwiping = false
+    }
+
+    const handleTouchMove = (e: Event) => {
+      const te = e as TouchEvent
+      const deltaX = te.touches[0].clientX - touchStartX
+      const deltaY = te.touches[0].clientY - touchStartY
+      // Only register horizontal swipe if horizontal distance > vertical
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+        isSwiping = true
+      }
+    }
+
+    const handleTouchEnd = (e: Event) => {
+      const te = e as TouchEvent
+      if (!isSwiping) return
+      const touchEndX = te.changedTouches[0].clientX
+      const deltaX = touchEndX - touchStartX
+      const minSwipeDistance = 50
+
+      if (Math.abs(deltaX) >= minSwipeDistance) {
+        if (deltaX < 0) {
+          // Swipe left -> next scene
+          handleNextScene()
+        } else {
+          // Swipe right -> prev scene
+          handlePrevScene()
+        }
+      }
+      isSwiping = false
+    }
+
+    const container = document.querySelector('.absolute.inset-0.z-10')
+    if (container) {
+      container.addEventListener('touchstart', handleTouchStart, { passive: true })
+      container.addEventListener('touchmove', handleTouchMove, { passive: true })
+      container.addEventListener('touchend', handleTouchEnd, { passive: true })
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('touchstart', handleTouchStart)
+        container.removeEventListener('touchmove', handleTouchMove)
+        container.removeEventListener('touchend', handleTouchEnd)
+      }
+    }
+  }, [handleNextScene, handlePrevScene])
+
   // Cursor auto-hide in clear-screen mode
   useEffect(() => {
     if (!isHidden) {

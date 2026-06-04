@@ -40,7 +40,7 @@ export default function Landing({ onStart }: LandingProps) {
       />
 
       {/* Brand logo - top left */}
-      <div className="absolute left-8 top-8 z-20 flex items-center gap-2.5">
+      <div className="absolute left-4 top-4 z-20 flex items-center gap-2.5 sm:left-8 sm:top-8">
         {/* Book SVG icon */}
         <svg
           width="22"
@@ -63,7 +63,7 @@ export default function Landing({ onStart }: LandingProps) {
       </div>
 
       {/* Center-left content area */}
-      <div className="relative z-20 ml-[8vw] mt-[-4vh] max-w-[540px] px-6">
+      <div className="relative z-20 ml-[4vw] mt-[-4vh] max-w-[540px] px-4 sm:ml-[8vw] sm:px-6">
         {/* Tagline */}
         <p
           className="mb-6 text-[11px] font-medium uppercase tracking-[0.35em] text-white/40"
@@ -74,9 +74,9 @@ export default function Landing({ onStart }: LandingProps) {
 
         {/* Hero title */}
         <h1
-          className="mb-6 text-white whitespace-pre-line"
+          className="mb-4 text-white whitespace-pre-line sm:mb-6"
           style={{
-            fontSize: 'clamp(3rem, 6vw, 6rem)',
+            fontSize: 'clamp(1.8rem, 6vw, 6rem)',
             fontWeight: 200,
             lineHeight: 1.15,
             letterSpacing: '-0.02em',
@@ -88,7 +88,7 @@ export default function Landing({ onStart }: LandingProps) {
 
         {/* Subtitle */}
         <p
-          className="mb-10 max-w-[480px] text-base font-light leading-relaxed text-white/60"
+          className="mb-6 max-w-[480px] text-sm font-light leading-relaxed text-white/60 sm:mb-10 sm:text-base"
           style={{ animation: 'fadeSlideUp 0.8s ease-out 0.55s both' }}
         >
           {t('landing.subtitle')}
@@ -98,7 +98,7 @@ export default function Landing({ onStart }: LandingProps) {
         <div style={{ animation: 'fadeSlideUp 0.8s ease-out 0.8s both' }}>
           <button
             onClick={onStart}
-            className="group rounded-full border border-white/15 px-8 py-3.5 text-sm font-medium tracking-wide text-white transition-all duration-300 hover:border-white/30 hover:bg-white/10 active:scale-[0.97]"
+            className="group w-full rounded-full border border-white/15 px-8 py-3.5 text-sm font-medium tracking-wide text-white transition-all duration-300 hover:border-white/30 hover:bg-white/10 active:scale-[0.97] sm:w-auto"
             style={{
               background: 'rgba(255,255,255,0.06)',
               backdropFilter: 'blur(12px)',
