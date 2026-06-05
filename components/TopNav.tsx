@@ -24,7 +24,7 @@ export default function TopNav({
       {/* Left: Back button */}
       <button
         onClick={onBackToPicker}
-        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-white/70 bg-white/10 border border-white/10 backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.08] hover:text-white hover:border-white/20"
+        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-white/70 bg-white/10 border border-white/10 backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.08] hover:text-white hover:border-white/20 active:scale-95"
       >
         <span className="text-base leading-none">&larr;</span>
         <span className="hidden sm:inline">{t('nav.backToScenes')}</span>
@@ -34,7 +34,7 @@ export default function TopNav({
       <div className="flex items-center gap-1 sm:gap-6">
         <button
           onClick={onOpenTools}
-          className="flex h-8 w-8 items-center justify-center rounded-full px-3 py-1.5 text-sm text-white/60 transition-all duration-200 hover:text-white hover:bg-white/10 sm:h-auto sm:w-auto sm:rounded-full sm:text-sm sm:text-white/60 sm:hover:bg-white/[0.08]"
+          className="flex h-8 w-8 items-center justify-center rounded-full px-3 py-1.5 text-sm text-white/60 transition-all duration-200 hover:text-white hover:bg-white/10 active:scale-95 sm:h-auto sm:w-auto sm:rounded-full sm:text-sm sm:text-white/60 sm:hover:bg-white/[0.08]"
           title={t('nav.tools')}
         >
           <svg className="h-4 w-4 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -44,7 +44,7 @@ export default function TopNav({
         </button>
         <button
           onClick={onOpenMemo}
-          className="flex h-8 w-8 items-center justify-center rounded-full px-3 py-1.5 text-sm text-white/60 transition-all duration-200 hover:text-white hover:bg-white/10 sm:h-auto sm:w-auto sm:rounded-full sm:text-sm sm:text-white/60 sm:hover:bg-white/[0.08]"
+          className="flex h-8 w-8 items-center justify-center rounded-full px-3 py-1.5 text-sm text-white/60 transition-all duration-200 hover:text-white hover:bg-white/10 active:scale-95 sm:h-auto sm:w-auto sm:rounded-full sm:text-sm sm:text-white/60 sm:hover:bg-white/[0.08]"
           title={t('nav.memo')}
         >
           <svg className="h-4 w-4 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -54,7 +54,7 @@ export default function TopNav({
         </button>
         <button
           onClick={onOpenStats}
-          className="flex h-8 w-8 items-center justify-center rounded-full px-3 py-1.5 text-sm text-white/60 transition-all duration-200 hover:text-white hover:bg-white/10 sm:h-auto sm:w-auto sm:rounded-full sm:text-sm sm:text-white/60 sm:hover:bg-white/[0.08]"
+          className="flex h-8 w-8 items-center justify-center rounded-full px-3 py-1.5 text-sm text-white/60 transition-all duration-200 hover:text-white hover:bg-white/10 active:scale-95 sm:h-auto sm:w-auto sm:rounded-full sm:text-sm sm:text-white/60 sm:hover:bg-white/[0.08]"
           title={t('nav.stats')}
         >
           <svg className="h-4 w-4 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -64,7 +64,7 @@ export default function TopNav({
         </button>
         <button
           onClick={onOpenCalendar}
-          className="flex h-8 w-8 items-center justify-center rounded-full px-3 py-1.5 text-sm text-white/60 transition-all duration-200 hover:text-white hover:bg-white/10 sm:h-auto sm:w-auto sm:rounded-full sm:text-sm sm:text-white/60 sm:hover:bg-white/[0.08]"
+          className="flex h-8 w-8 items-center justify-center rounded-full px-3 py-1.5 text-sm text-white/60 transition-all duration-200 hover:text-white hover:bg-white/10 active:scale-95 sm:h-auto sm:w-auto sm:rounded-full sm:text-sm sm:text-white/60 sm:hover:bg-white/[0.08]"
           title={t('nav.calendar')}
         >
           <svg className="h-4 w-4 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -74,7 +74,7 @@ export default function TopNav({
         </button>
         <button
           onClick={() => window.open('https://www.youtube.com/results?search_query=lofi+study+music+live', '_blank')}
-          className="flex h-8 w-8 items-center justify-center rounded-full px-3 py-1.5 text-sm text-white/60 transition-all duration-200 hover:text-white hover:bg-white/10 sm:h-auto sm:w-auto sm:rounded-full sm:text-sm sm:text-white/60 sm:hover:bg-white/[0.08]"
+          className="flex h-8 w-8 items-center justify-center rounded-full px-3 py-1.5 text-sm text-white/60 transition-all duration-200 hover:text-white hover:bg-white/10 active:scale-95 sm:h-auto sm:w-auto sm:rounded-full sm:text-sm sm:text-white/60 sm:hover:bg-white/[0.08]"
           title={t('nav.music')}
         >
           <svg className="h-4 w-4 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -90,7 +90,7 @@ export default function TopNav({
       {/* Right: Clear screen */}
       <button
         onClick={onClearScreen}
-        className="flex h-8 w-8 items-center justify-center rounded-full text-white/60 border border-white/10 transition-all duration-200 hover:bg-white/15 hover:text-white hover:border-white/20 sm:h-auto sm:w-auto sm:rounded-full sm:px-4 sm:py-1.5 sm:text-sm"
+        className="flex h-8 w-8 items-center justify-center rounded-full text-white/60 border border-white/10 transition-all duration-200 hover:bg-white/15 hover:text-white hover:border-white/20 active:scale-95 sm:h-auto sm:w-auto sm:rounded-full sm:px-4 sm:py-1.5 sm:text-sm"
         title={t('nav.clearScreen')}
       >
         <svg className="h-4 w-4 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">

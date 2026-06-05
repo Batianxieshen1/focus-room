@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { t } from '@/lib/i18n';
 
 interface LandingProps {
@@ -8,8 +8,6 @@ interface LandingProps {
 }
 
 export default function Landing({ onStart }: LandingProps) {
-  const rootRef = useRef<HTMLDivElement>(null);
-
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
@@ -27,7 +25,6 @@ export default function Landing({ onStart }: LandingProps) {
 
   return (
     <div
-      ref={rootRef}
       className="absolute inset-0 z-10 flex items-center"
     >
       {/* Dark gradient overlay for text readability — left-heavy so right side stays bright to show video */}

@@ -1,6 +1,7 @@
 'use client'
 
 import { Component, ReactNode } from 'react'
+import { t } from '@/lib/i18n'
 
 interface Props {
   children: ReactNode
@@ -36,15 +37,15 @@ export default class ErrorBoundary extends Component<Props, State> {
         >
           <div className="text-center animate-fade-in">
             <div className="text-5xl mb-4">🌧</div>
-            <p className="text-white/60 text-sm mb-6">页面出了点问题</p>
+            <p className="text-white/60 text-sm mb-6">{t('error.title')}</p>
             <button
               onClick={() => {
                 this.setState({ hasError: false })
                 window.location.reload()
               }}
-              className="px-6 py-2.5 rounded-full bg-white/[0.12] text-white/80 text-sm hover:bg-white/[0.18] transition-all duration-200"
+              className="px-6 py-2.5 rounded-full bg-white/[0.12] text-white/80 text-sm hover:bg-white/[0.18] transition-all duration-200 active:scale-95"
             >
-              刷新重试
+              {t('error.retry')}
             </button>
           </div>
         </div>

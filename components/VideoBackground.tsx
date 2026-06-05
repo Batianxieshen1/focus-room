@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { SCENES } from './SceneSelector'
+import { SCENES, SCENE_GRADIENTS } from './SceneSelector'
+import { t } from '@/lib/i18n'
 
 interface Props {
   scene: string
@@ -26,16 +27,6 @@ function getNextSceneId(currentScene: string): string {
   return SCENES[(idx + 1) % SCENES.length].id
 }
 
-// 每个场景的主色调，用于加载时的渐变背景
-const SCENE_GRADIENTS: Record<string, string> = {
-  'mountain-lake': 'linear-gradient(135deg, #1a3a5c 0%, #2d5a7a 40%, #1a4a6a 100%)',
-  'seaside': 'linear-gradient(135deg, #1a3a4a 0%, #2a5a6a 40%, #1a4a5a 100%)',
-  'forest': 'linear-gradient(135deg, #0a2a1a 0%, #1a3a2a 40%, #0d2a1a 100%)',
-  'starry-sky': 'linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 40%, #0d0d2a 100%)',
-  'rainy-cafe': 'linear-gradient(135deg, #1a1a2a 0%, #2a2a3a 40%, #1a1a3a 100%)',
-  'snowy-window': 'linear-gradient(135deg, #2a3a4a 0%, #4a5a6a 40%, #3a4a5a 100%)',
-}
-
 export default function VideoBackground({ scene, videoSrc }: Props) {
   const resolvedSrc = videoSrc || VIDEO_SOURCES[scene] || ''
   const videoARef = useRef<HTMLVideoElement>(null)
@@ -45,6 +36,7 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [retryKey, setRetryKey] = useState(0)
   const versionRef = useRef(0)
   const crossfadingRef = useRef(false)
   const crossfadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -81,10 +73,6 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
       setTimeout(() => setLoading(false), 300)
     }
 
-    const handleProgress = () => {
-      // 利用 buffered 更新加载进度（可用于未来扩展进度条）
-    }
-
     const handleError = () => {
       if (version !== versionRef.current) return
       setError(true)
@@ -92,14 +80,12 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
     }
 
     videoA.addEventListener('canplay', handleCanPlay, { once: true })
-    videoA.addEventListener('progress', handleProgress)
     videoA.addEventListener('error', handleError, { once: true })
     return () => {
       videoA.removeEventListener('canplay', handleCanPlay)
-      videoA.removeEventListener('progress', handleProgress)
       videoA.removeEventListener('error', handleError)
     }
-  }, [scene])
+  }, [scene, retryKey])
 
   // Crossfade logic: when current video nears the end, start the next one
   useEffect(() => {
@@ -183,10 +169,12 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
 
   if (error) {
     return (
-      <div
-        className="absolute inset-0 w-full h-full"
-        style={{ background: gradient }}
-      />
+      <div className="absolute inset-0 w-full h-full flex items-center justify-center" style={{ background: gradient }}>
+        <button onClick={() => { setError(false); setRetryKey(k => k + 1) }}
+          className="glass rounded-full px-6 py-3 text-sm text-white/70 hover:text-white active:scale-95 transition-all">
+          {t('video.retry') || '重新加载'}
+        </button>
+      </div>
     )
   }
 

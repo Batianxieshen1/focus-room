@@ -80,7 +80,7 @@ export default function StudyCalendar({ onClose }: Props) {
   const today = new Date()
   const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month
 
-  const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+  const monthNames = t('calendar.months').split(',')
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in" onClick={onClose}>

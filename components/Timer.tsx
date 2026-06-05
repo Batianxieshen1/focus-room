@@ -85,7 +85,7 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
             <button
               key={m.key}
               onClick={() => timer.setMode(m.key)}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 active:scale-95 ${
                 timer.mode === m.key
                   ? 'bg-white/[0.18] text-white shadow-sm'
                   : 'text-white/65 hover:text-white/90'
@@ -135,7 +135,7 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
         <div className="flex items-center gap-4">
           <button
             onClick={timer.toggle}
-            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200 ${
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200 active:scale-[0.97] ${
               timer.isRunning
                 ? 'bg-white/[0.12] text-white/80 hover:bg-white/[0.18]'
                 : 'bg-white/[0.2] text-white hover:bg-white/[0.28] shadow-lg'
@@ -154,7 +154,7 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
           </button>
           <button
             onClick={timer.reset}
-            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/[0.06] text-white/50 hover:bg-white/[0.12] hover:text-white/80 transition-all duration-200"
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/[0.06] text-white/50 hover:bg-white/[0.12] hover:text-white/80 transition-all duration-200 active:scale-95"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M1 4v6h6"/>
@@ -170,7 +170,7 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
               <button
                 key={min}
                 onClick={() => timer.setPomodoroMinutes(min)}
-                className={`px-2.5 py-1 rounded-full text-xs transition-all duration-150 ${
+                className={`px-2.5 py-1 rounded-full text-xs transition-all duration-150 active:scale-95 ${
                   timer.totalSeconds === min * 60
                     ? 'bg-white/[0.18] text-white'
                     : 'text-white/60 hover:text-white/90'
@@ -188,7 +188,7 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
               <button
                 key={min}
                 onClick={() => timer.setCountdownMinutes(min)}
-                className={`px-2.5 py-1 rounded-full text-xs transition-all duration-150 ${
+                className={`px-2.5 py-1 rounded-full text-xs transition-all duration-150 active:scale-95 ${
                   timer.totalSeconds === min * 60
                     ? 'bg-white/[0.18] text-white'
                     : 'text-white/60 hover:text-white/90'

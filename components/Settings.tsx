@@ -40,6 +40,10 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
     } catch {}
   }, [isOpen])
 
+  // 语言和主题即时生效
+  useEffect(() => { setLocale(locale) }, [locale])
+  useEffect(() => { setTheme(theme) }, [theme])
+
   // 保存设置
   const handleSave = () => {
     localStorage.setItem('focus-room-settings', JSON.stringify(settings))
@@ -64,7 +68,7 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
 
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/5 transition-all duration-200"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/5 transition-all duration-200 active:scale-95"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18"/>
@@ -183,7 +187,7 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
         {/* 保存按钮 */}
         <button
           onClick={handleSave}
-          className="w-full mt-6 py-3 rounded-xl bg-white/[0.12] text-white/90 font-medium hover:bg-white/[0.18] transition-all duration-200"
+          className="w-full mt-6 py-3 rounded-xl bg-white/[0.12] text-white/90 font-medium hover:bg-white/[0.18] transition-all duration-200 active:scale-[0.97]"
         >
           {t('settings.save')}
         </button>

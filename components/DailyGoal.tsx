@@ -9,12 +9,12 @@ interface Props {
 }
 
 const GOALS = [
-  { minutes: 30, label: '30分钟' },
-  { minutes: 60, label: '1小时' },
-  { minutes: 90, label: '1.5小时' },
-  { minutes: 120, label: '2小时' },
-  { minutes: 180, label: '3小时' },
-  { minutes: 240, label: '4小时' },
+  { minutes: 30, labelKey: 'goal.30m' },
+  { minutes: 60, labelKey: 'goal.1h' },
+  { minutes: 90, labelKey: 'goal.1.5h' },
+  { minutes: 120, labelKey: 'goal.2h' },
+  { minutes: 180, labelKey: 'goal.3h' },
+  { minutes: 240, labelKey: 'goal.4h' },
 ]
 
 const CONFETTI_COLORS = ['#34d399', '#fbbf24', '#60a5fa', '#f472b6', '#a78bfa', '#fb923c']
@@ -88,7 +88,7 @@ export default function DailyGoal({ studySeconds }: Props) {
     <div className="relative" ref={pickerRef}>
       <button
         onClick={() => setShowPicker(!showPicker)}
-        className="flex items-center gap-2 text-xs transition-all duration-200 relative"
+        className="flex items-center gap-2 text-xs transition-all duration-200 relative active:scale-95"
       >
         {/* 进度圆环 */}
         <div className="relative">
@@ -126,19 +126,19 @@ export default function DailyGoal({ studySeconds }: Props) {
       {showPicker && (
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 glass-strong rounded-xl p-3 animate-fade-in min-w-[140px]"
           onClick={e => e.stopPropagation()}>
-          <div className="text-[10px] text-white/40 tracking-wider mb-2 uppercase">每日目标</div>
+          <div className="text-[10px] text-white/40 tracking-wider mb-2 uppercase">{t('goal.dailyTarget')}</div>
           <div className="space-y-1">
             {GOALS.map(g => (
               <button
                 key={g.minutes}
                 onClick={() => { setGoalMinutes(g.minutes); setShowPicker(false) }}
-                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-all duration-150 ${
+                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-all duration-150 active:scale-95 ${
                   goalMinutes === g.minutes
                     ? 'bg-white/[0.12] text-white'
                     : 'text-white/50 hover:text-white/80 hover:bg-white/[0.06]'
                 }`}
               >
-                {g.label}
+                {t(g.labelKey as any)}
               </button>
             ))}
           </div>

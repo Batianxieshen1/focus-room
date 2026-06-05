@@ -160,7 +160,7 @@ export default function FocusView({
       setReportPomodoros(completedPomodorosRef.current)
       setReportStudySeconds(studySecondsRef.current)
       setShowReport(true)
-      setTimeout(() => setShowReport(false), 3000)
+      setTimeout(() => setShowReport(false), 6000)
     }, 1500)
   }, [])
 
@@ -456,22 +456,22 @@ export default function FocusView({
       )}
 
       {showMemo && (
-        <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/50" />}>
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"><div className="text-white/30 text-sm animate-pulse">...</div></div>}>
           <MemoPanel onClose={() => setShowMemo(false)} />
         </Suspense>
       )}
       {showTools && (
-        <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/50" />}>
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"><div className="text-white/30 text-sm animate-pulse">...</div></div>}>
           <FocusTools onClose={() => setShowTools(false)} />
         </Suspense>
       )}
       {showStats && (
-        <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/50" />}>
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"><div className="text-white/30 text-sm animate-pulse">...</div></div>}>
           <StudyStats onClose={() => setShowStats(false)} />
         </Suspense>
       )}
       {showCalendar && (
-        <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/50" />}>
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"><div className="text-white/30 text-sm animate-pulse">...</div></div>}>
           <StudyCalendar onClose={() => setShowCalendar(false)} />
         </Suspense>
       )}

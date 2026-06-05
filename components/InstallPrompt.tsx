@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { t } from '@/lib/i18n'
 
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
@@ -48,19 +49,19 @@ export default function InstallPrompt() {
       <div className="glass-strong rounded-2xl p-4 flex items-center gap-3 max-w-[260px]">
         <span className="text-2xl">📱</span>
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-medium text-white/90">安装到桌面</div>
-          <div className="text-[10px] text-white/50 mt-0.5">像原生 App 一样使用</div>
+          <div className="text-xs font-medium text-white/90">{t('install.title')}</div>
+          <div className="text-[10px] text-white/50 mt-0.5">{t('install.desc')}</div>
         </div>
         <div className="flex gap-1.5">
           <button
             onClick={handleInstall}
-            className="px-3 py-1.5 rounded-lg bg-white/[0.15] text-white/90 text-[11px] font-medium hover:bg-white/[0.22] transition-all"
+            className="px-3 py-1.5 rounded-lg bg-white/[0.15] text-white/90 text-[11px] font-medium hover:bg-white/[0.22] transition-all active:scale-95"
           >
             安装
           </button>
           <button
             onClick={handleDismiss}
-            className="px-2 py-1.5 rounded-lg text-white/40 text-[11px] hover:text-white/70 transition-all"
+            className="px-2 py-1.5 rounded-lg text-white/40 text-[11px] hover:text-white/70 transition-all active:scale-95"
           >
             ✕
           </button>

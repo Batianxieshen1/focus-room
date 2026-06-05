@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { t } from '@/lib/i18n'
 import ShortcutIndicator from './ShortcutIndicator'
 
@@ -65,7 +65,7 @@ export default function BottomBar({
         {/* Prev scene arrow */}
         <button
           onClick={onPrevScene}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-xl font-light text-white/60 transition-all duration-200 hover:bg-white/15 hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-xl font-light text-white/60 transition-all duration-200 hover:bg-white/15 hover:text-white active:scale-95"
           aria-label={t('bar.prevScene')}
         >
           ‹
@@ -97,7 +97,7 @@ export default function BottomBar({
         {/* Next scene arrow */}
         <button
           onClick={onNextScene}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-xl font-light text-white/60 transition-all duration-200 hover:bg-white/15 hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-xl font-light text-white/60 transition-all duration-200 hover:bg-white/15 hover:text-white active:scale-95"
           aria-label={t('bar.nextScene')}
         >
           ›
@@ -113,7 +113,7 @@ export default function BottomBar({
             {/* Mute toggle */}
             <button
               onClick={onToggleMute}
-              className="flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15"
+              className="flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 active:scale-95"
               aria-label={isMuted ? t('bar.unmute') : t('bar.mute')}
             >
               {isMuted ? (
@@ -172,7 +172,7 @@ export default function BottomBar({
         {/* Mobile mute button */}
         <button
           onClick={onToggleMute}
-          className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 sm:hidden"
+          className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 active:scale-95 sm:hidden"
           aria-label={isMuted ? t('bar.unmute') : t('bar.mute')}
         >
           {isMuted ? (
@@ -198,7 +198,7 @@ export default function BottomBar({
         <div className="relative" ref={sleepMenuRef}>
           <button
             onClick={() => setShowSleepMenu(prev => !prev)}
-            className={`flex h-8 items-center justify-center gap-1.5 rounded-full px-1.5 transition-all duration-200 hover:bg-white/15 sm:px-2.5 ${
+            className={`flex h-8 items-center justify-center gap-1.5 rounded-full px-1.5 transition-all duration-200 hover:bg-white/15 active:scale-95 sm:px-2.5 ${
               sleepTimerRemaining !== null ? 'text-amber-300/90' : 'text-white/50'
             }`}
             aria-label={t('bar.sleepTimer')}
@@ -229,7 +229,7 @@ export default function BottomBar({
                 <button
                   key={opt.minutes}
                   onClick={() => handleSleepSelect(opt.minutes)}
-                  className="w-full px-3 py-1.5 text-left text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors duration-150 flex items-center justify-between"
+                  className="w-full px-3 py-1.5 text-left text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors duration-150 flex items-center justify-between active:scale-95"
                 >
                   {opt.label}
                   {sleepTimerRemaining !== null && Math.ceil(sleepTimerRemaining / 60) === opt.minutes && (
@@ -240,7 +240,7 @@ export default function BottomBar({
               <div className="mx-2 my-1 h-px bg-white/10" />
               <button
                 onClick={() => handleSleepSelect(null)}
-                className="w-full px-3 py-1.5 text-left text-sm text-white/50 hover:bg-white/10 hover:text-white transition-colors duration-150"
+                className="w-full px-3 py-1.5 text-left text-sm text-white/50 hover:bg-white/10 hover:text-white transition-colors duration-150 active:scale-95"
               >
                 {t('bar.sleepOff')}
               </button>
@@ -254,7 +254,7 @@ export default function BottomBar({
         {/* Settings button */}
         <button
           onClick={onOpenSettings}
-          className="hidden h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 sm:flex"
+          className="hidden h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 active:scale-95 sm:flex"
           aria-label={t('bar.settings')}
         >
           <svg
@@ -274,7 +274,7 @@ export default function BottomBar({
         {/* Fullscreen button */}
         <button
           onClick={onFullscreen}
-          className="hidden h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 sm:flex"
+          className="hidden h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 active:scale-95 sm:flex"
           aria-label={t('bar.fullscreen')}
         >
           <svg

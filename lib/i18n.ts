@@ -124,6 +124,9 @@ const translations = {
     'report.todayStudy': '今日累计学习 XX:XX',
     'report.clickToDismiss': '点击关闭',
 
+    // Video
+    'video.retry': '重新加载',
+
     // ScenePicker
     'picker.backToCover': '返回封面',
     'picker.chooseWindow': 'CHOOSE YOUR WINDOW',
@@ -180,6 +183,42 @@ const translations = {
 
     // Calendar active days
     'calendar.activeDays': '天',
+
+    // Calendar months
+    'calendar.months': '1月,2月,3月,4月,5月,6月,7月,8月,9月,10月,11月,12月',
+
+    // ErrorBoundary
+    'error.title': '页面出了点问题',
+    'error.retry': '刷新重试',
+
+    // StudyStats
+    'stats.thisWeek': '本周',
+    'stats.weeksAgo': '周前',
+
+    // DailyGoal labels
+    'goal.30m': '30分钟',
+    'goal.1h': '1小时',
+    'goal.1.5h': '1.5小时',
+    'goal.2h': '2小时',
+    'goal.3h': '3小时',
+    'goal.4h': '4小时',
+
+    // ShortcutToast
+    'shortcut.title': '快捷键',
+    'shortcut.startPause': '开始/暂停',
+    'shortcut.reset': '重置',
+    'shortcut.switchMode': '切换模式',
+    'shortcut.muteAll': '全部静音',
+
+    // InstallPrompt
+    'install.title': '安装到桌面',
+    'install.desc': '像原生 App 一样使用',
+
+    // Memo confirm
+    'memo.confirmClear': '确定要清空所有已完成的任务吗？',
+
+    // FocusTools confirm
+    'tools.confirmDelete': '确定要删除这个链接吗？',
   },
   en: {
     // Tab names / toolbar
@@ -302,6 +341,9 @@ const translations = {
     'report.todayStudy': 'Total study today: XX:XX',
     'report.clickToDismiss': 'Click to dismiss',
 
+    // Video
+    'video.retry': 'Retry',
+
     // ScenePicker
     'picker.backToCover': 'Back to Cover',
     'picker.chooseWindow': 'CHOOSE YOUR WINDOW',
@@ -358,6 +400,42 @@ const translations = {
 
     // Calendar active days
     'calendar.activeDays': 'days',
+
+    // Calendar months
+    'calendar.months': 'Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec',
+
+    // ErrorBoundary
+    'error.title': 'Something went wrong',
+    'error.retry': 'Try Again',
+
+    // StudyStats
+    'stats.thisWeek': 'This week',
+    'stats.weeksAgo': 'weeks ago',
+
+    // DailyGoal labels
+    'goal.30m': '30min',
+    'goal.1h': '1 hour',
+    'goal.1.5h': '1.5 hours',
+    'goal.2h': '2 hours',
+    'goal.3h': '3 hours',
+    'goal.4h': '4 hours',
+
+    // ShortcutToast
+    'shortcut.title': 'Shortcuts',
+    'shortcut.startPause': 'Start/Pause',
+    'shortcut.reset': 'Reset',
+    'shortcut.switchMode': 'Switch Mode',
+    'shortcut.muteAll': 'Mute All',
+
+    // InstallPrompt
+    'install.title': 'Install to Desktop',
+    'install.desc': 'Use like a native app',
+
+    // Memo confirm
+    'memo.confirmClear': 'Clear all completed tasks?',
+
+    // FocusTools confirm
+    'tools.confirmDelete': 'Delete this link?',
   },
 } as const
 

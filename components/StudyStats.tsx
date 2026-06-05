@@ -71,7 +71,7 @@ export default function StudyStats({ onClose }: Props) {
   }
 
   const weeks = [3, 2, 1, 0].map(offset => ({
-    label: offset === 0 ? '本周' : `${offset}周前`,
+    label: offset === 0 ? t('stats.thisWeek') : `${offset}${t('stats.weeksAgo')}`,
     total: getWeekTotal(offset),
   }))
 

@@ -1,14 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { t } from '@/lib/i18n'
 
 const STORAGE_KEY = 'focus-room-shortcut-seen'
 
 const SHORTCUTS = [
-  { key: 'Space', desc: '开始/暂停' },
-  { key: 'R', desc: '重置' },
-  { key: '1-3', desc: '切换模式' },
-  { key: 'M', desc: '全部静音' },
+  { key: 'Space', labelKey: 'shortcut.startPause' },
+  { key: 'R', labelKey: 'shortcut.reset' },
+  { key: '1-3', labelKey: 'shortcut.switchMode' },
+  { key: 'M', labelKey: 'shortcut.muteAll' },
 ]
 
 export default function ShortcutToast() {
@@ -59,18 +60,18 @@ export default function ShortcutToast() {
         fading ? 'animate-toast-out' : 'animate-toast-in'
       }`}
     >
-      <span className="text-white/40 mr-1">快捷键</span>
+      <span className="text-white/40 mr-1">{t('shortcut.title')}</span>
       {SHORTCUTS.map(s => (
         <div key={s.key} className="flex items-center gap-1.5">
           <kbd className="px-1.5 py-0.5 rounded bg-white/[0.1] text-white/80 font-mono text-[10px]">
             {s.key}
           </kbd>
-          <span className="text-white/50">{s.desc}</span>
+          <span className="text-white/50">{t(s.labelKey as any)}</span>
         </div>
       ))}
       <button
         onClick={handleClose}
-        className="ml-2 text-white/30 hover:text-white/60 transition-colors"
+        className="ml-2 text-white/30 hover:text-white/60 transition-colors active:scale-95"
         aria-label="关闭"
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">

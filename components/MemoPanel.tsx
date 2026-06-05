@@ -74,8 +74,10 @@ export default function MemoPanel({ onClose }: Props) {
     setTodos(prev => prev.filter(t => t.id !== id))
   }
 
-  const clearCompleted = () => {
-    setTodos(prev => prev.filter(t => !t.completed))
+  const handleClearCompleted = () => {
+    if (window.confirm(t('memo.confirmClear'))) {
+      setTodos(prev => prev.filter(t => !t.completed))
+    }
   }
 
   const filtered = todos.filter(t => {
@@ -93,31 +95,31 @@ export default function MemoPanel({ onClose }: Props) {
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/50" />
 
       {/* macOS Window */}
       <div
-        className="relative w-full max-w-[480px] max-h-[70vh] bg-white rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.3),0_8px_20px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden animate-scale-in"
+        className="relative w-full max-w-[480px] max-h-[70vh] glass-strong rounded-3xl flex flex-col overflow-hidden animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
-        {/* Title bar - macOS style */}
-        <div className="flex items-center gap-3 px-4 py-3 bg-gray-100/80 border-b border-gray-200/60 select-none">
+        {/* Title bar - dark style */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.08] select-none">
           {/* Traffic lights */}
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="w-3 h-3 rounded-full bg-[#ff5f57] hover:bg-[#ff4040] transition-colors"
+              className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]/70 hover:bg-[#ff5f57] transition-colors"
               aria-label="Close"
             />
-            <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
-            <span className="w-3 h-3 rounded-full bg-[#28c840]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#febc2e]/50" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#28c840]/50" />
           </div>
 
-          <span className="text-sm font-medium text-gray-500 ml-1">{t('memo.title')}</span>
+          <span className="text-sm font-medium text-white/50 ml-1">{t('memo.title')}</span>
 
           <button
             onClick={onClose}
-            className="ml-auto text-gray-400 hover:text-gray-600 transition-colors text-lg leading-none"
+            className="ml-auto text-white/30 hover:text-white/60 transition-colors text-lg leading-none"
             aria-label="Close"
           >
             &times;
@@ -127,18 +129,18 @@ export default function MemoPanel({ onClose }: Props) {
         {/* Content */}
         <div className="flex flex-col flex-1 overflow-hidden p-5">
           {/* Heading */}
-          <h2 className="text-xl font-bold text-gray-900 mb-4">{t('memo.heading')}</h2>
+          <h2 className="text-xl font-bold text-white mb-4">{t('memo.heading')}</h2>
 
           {/* Filter tabs */}
-          <div className="flex gap-1 mb-3 bg-gray-100 rounded-full p-0.5 w-fit">
+          <div className="flex gap-1 mb-3 bg-white/[0.06] rounded-full p-0.5 w-fit">
             {(['all', 'active', 'done'] as Filter[]).map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-3.5 py-1 text-xs font-medium rounded-full transition-all duration-200 ${
+                className={`px-3.5 py-1 text-xs font-medium rounded-full transition-all duration-200 active:scale-95 ${
                   filter === f
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white/[0.15] text-white shadow-sm'
+                    : 'text-white/40 hover:text-white/70'
                 }`}
               >
                 {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -147,7 +149,7 @@ export default function MemoPanel({ onClose }: Props) {
           </div>
 
           {/* Stats */}
-          <div className="flex items-center justify-between mb-3 text-[11px] text-gray-400">
+          <div className="flex items-center justify-between mb-3 text-[11px] text-white/30">
             <span>{activeCount} {t('memo.activeCount')}</span>
             <span>{completedCount} {t('memo.completedCount')}</span>
           </div>
@@ -161,7 +163,7 @@ export default function MemoPanel({ onClose }: Props) {
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addTodo()}
               placeholder={t('memo.newReminder')}
-              className="flex-1 px-3.5 py-2 text-sm text-gray-800 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-gray-300"
+              className="flex-1 px-3.5 py-2 text-sm text-white bg-white/[0.06] border border-white/[0.08] rounded-xl outline-none focus:border-blue-400/60 focus:ring-2 focus:ring-blue-400/10 transition-all placeholder:text-white/25"
             />
             <button
               onClick={addTodo}
@@ -175,7 +177,7 @@ export default function MemoPanel({ onClose }: Props) {
           {/* Todo list */}
           <div className="flex-1 overflow-y-auto min-h-0 space-y-1 pr-1 custom-scrollbar">
             {filtered.length === 0 && (
-              <div className="text-center text-gray-300 text-sm py-10">
+              <div className="text-center text-white/25 text-sm py-10">
                 {filter === 'done'
                   ? t('memo.emptyDone')
                   : filter === 'active'
@@ -187,15 +189,15 @@ export default function MemoPanel({ onClose }: Props) {
             {filtered.map(todo => (
               <div
                 key={todo.id}
-                className="group flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+                className="group flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.06] transition-colors"
               >
                 {/* Checkbox */}
                 <button
                   onClick={() => toggleTodo(todo.id)}
-                  className={`flex-shrink-0 w-[18px] h-[18px] rounded-md border-2 flex items-center justify-center transition-all ${
+                  className={`flex-shrink-0 w-[18px] h-[18px] rounded-md border-2 flex items-center justify-center transition-all active:scale-95 ${
                     todo.completed
                       ? 'bg-blue-500 border-blue-500'
-                      : 'border-gray-300 hover:border-blue-400'
+                      : 'border-white/20 hover:border-blue-400/60'
                   }`}
                   aria-label={todo.completed ? 'Mark incomplete' : 'Mark complete'}
                 >
@@ -216,8 +218,8 @@ export default function MemoPanel({ onClose }: Props) {
                 <span
                   className={`flex-1 text-sm transition-all ${
                     todo.completed
-                      ? 'text-gray-400 line-through decoration-gray-300'
-                      : 'text-gray-800'
+                      ? 'text-white/30 line-through decoration-white/15'
+                      : 'text-white/80'
                   }`}
                 >
                   {todo.text}
@@ -226,7 +228,7 @@ export default function MemoPanel({ onClose }: Props) {
                 {/* Delete button (visible on hover) */}
                 <button
                   onClick={() => deleteTodo(todo.id)}
-                  className="flex-shrink-0 opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all text-sm"
+                  className="flex-shrink-0 opacity-0 group-hover:opacity-100 text-white/25 hover:text-red-400 transition-all text-sm active:scale-95"
                   aria-label="Delete"
                 >
                   &times;
@@ -236,15 +238,15 @@ export default function MemoPanel({ onClose }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="pt-3 mt-2 border-t border-gray-100">
-            <p className="text-[11px] text-gray-400 italic text-center">
+          <div className="pt-3 mt-2 border-t border-white/[0.08]">
+            <p className="text-[11px] text-white/25 italic text-center">
               {t('memo.writeHint')}
             </p>
 
             {completedCount > 0 && (
               <button
-                onClick={clearCompleted}
-                className="w-full mt-2 text-[11px] text-gray-400 hover:text-red-400 transition-colors text-center"
+                onClick={handleClearCompleted}
+                className="w-full mt-2 text-[11px] text-white/30 hover:text-red-400 transition-colors text-center active:scale-95"
               >
                 {t('memo.clearCompleted')}
               </button>
