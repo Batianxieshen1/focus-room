@@ -29,7 +29,7 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
   return (
     <div className="absolute inset-0 z-10 flex flex-col text-white">
       {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-black/40 scene-picker-overlay pointer-events-none" />
+      <div className="absolute inset-0 bg-black/30 scene-picker-overlay pointer-events-none" />
 
       {/* Subtle noise overlay */}
       <div
@@ -106,6 +106,7 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
                   className={`
                     w-full flex items-center gap-4 p-3 rounded-xl text-left transition-all duration-300
                     animate-[fadeInRight_0.4s_ease-out_both]
+                    hover:-translate-y-[2px] hover:shadow-lg hover:shadow-white/[0.04]
                     ${
                       isSelected
                         ? `bg-white/15 border border-white/30 shadow-lg shadow-white/5 ${entering ? 'scale-[1.05] opacity-100' : ''}`
@@ -116,12 +117,23 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
                 >
                   {/* Scene thumbnail */}
                   <div
-                    className="w-20 h-[60px] rounded-lg flex-shrink-0 flex items-center justify-center text-2xl"
+                    className="w-24 h-16 rounded-xl flex-shrink-0 flex items-center justify-center text-2xl relative overflow-hidden"
                     style={{
                       background: SCENE_GRADIENTS[scene.id],
+                      boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.35), inset 0 -1px 3px rgba(255,255,255,0.04)',
                     }}
                   >
-                    {scene.icon}
+                    {/* Subtle radial highlight overlay */}
+                    <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'radial-gradient(circle at 30% 40%, rgba(255,255,255,0.15) 0%, transparent 60%)'}} />
+                    {/* Noise texture */}
+                    <div
+                      className="absolute inset-0 opacity-10 pointer-events-none"
+                      style={{
+                        backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 64 64\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.5\'/%3E%3C/svg%3E")',
+                        backgroundSize: '64px 64px',
+                      }}
+                    />
+                    <span className="relative z-10">{scene.icon}</span>
                   </div>
 
                   {/* Scene info */}

@@ -5,11 +5,13 @@ import { SCENES } from './SceneSelector'
 
 interface Props {
   scene: string
+  videoSrc?: string
 }
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
 
 const VIDEO_SOURCES: Record<string, string> = {
+  'landing': BASE_PATH + '/videos/landing-bg.mp4',
   'mountain-lake': BASE_PATH + '/videos/mountain-lake.mp4',
   'seaside': BASE_PATH + '/videos/seaside.mp4',
   'forest': BASE_PATH + '/videos/forest.mp4',
@@ -34,7 +36,8 @@ const SCENE_GRADIENTS: Record<string, string> = {
   'snowy-window': 'linear-gradient(135deg, #2a3a4a 0%, #4a5a6a 40%, #3a4a5a 100%)',
 }
 
-export default function VideoBackground({ scene }: Props) {
+export default function VideoBackground({ scene, videoSrc }: Props) {
+  const resolvedSrc = videoSrc || VIDEO_SOURCES[scene] || ''
   const videoARef = useRef<HTMLVideoElement>(null)
   const videoBRef = useRef<HTMLVideoElement>(null)
   const preloadRef = useRef<HTMLVideoElement>(null)
@@ -58,7 +61,7 @@ export default function VideoBackground({ scene }: Props) {
     activeRef.current = 'A'
     setActiveOpacity('A')
 
-    const src = VIDEO_SOURCES[scene] || ''
+    const src = resolvedSrc
     const videoA = videoARef.current
     const videoB = videoBRef.current
     if (!videoA || !videoB) return
@@ -116,7 +119,7 @@ export default function VideoBackground({ scene }: Props) {
       if (!preloadTriggered && current.currentTime >= current.duration - 5) {
         preloadTriggered = true
         if (!next.src || next.src === 'about:blank') {
-          next.src = VIDEO_SOURCES[scene] || ''
+          next.src = resolvedSrc
         }
         next.preload = 'auto'
         next.load()
@@ -127,7 +130,7 @@ export default function VideoBackground({ scene }: Props) {
         crossfadingRef.current = true
         // 确保 next 有 src（短视频可能未触发 preload）
         if (!next.src || next.src === 'about:blank') {
-          next.src = VIDEO_SOURCES[scene] || ''
+          next.src = resolvedSrc
         }
         next.currentTime = 0
         next.play().catch(() => {})

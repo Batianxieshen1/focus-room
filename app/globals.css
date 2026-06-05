@@ -65,12 +65,19 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
+/* ==================== Typography Utilities ==================== */
+.text-display { font-weight: 100; letter-spacing: -0.03em; line-height: 1.1; }
+.text-heading { font-weight: 300; letter-spacing: -0.01em; }
+.text-body { font-weight: 400; line-height: 1.6; }
+.text-caption { font-weight: 400; font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; }
+
 /* ==================== Glass Panel ==================== */
 .glass {
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.25);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .glass-subtle {
@@ -81,10 +88,11 @@ html, body {
 }
 
 .glass-strong {
-  background: rgba(0, 0, 0, 0.32);
+  background: rgba(0, 0, 0, 0.45);
   -webkit-backdrop-filter: saturate(200%) blur(24px);
   backdrop-filter: saturate(200%) blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 /* ==================== Buttons ==================== */
@@ -398,6 +406,7 @@ html.light-theme .glass {
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   backdrop-filter: saturate(180%) blur(20px);
   border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
 }
 
 html.light-theme .glass-subtle {
@@ -408,6 +417,7 @@ html.light-theme .glass-subtle {
 html.light-theme .glass-strong {
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255,255,255,0.6);
 }
 
 html.light-theme .btn-ghost {

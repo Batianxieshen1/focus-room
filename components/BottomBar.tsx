@@ -74,7 +74,7 @@ export default function BottomBar({
         {/* Scene info */}
         <div className="hidden flex-col items-center gap-0 sm:flex">
           <span className="text-[10px] leading-tight text-white/40">{t('bar.scene')}</span>
-          <span className="whitespace-nowrap text-sm font-medium leading-tight text-white/90">
+          <span className="whitespace-nowrap text-sm font-semibold leading-tight text-white/90">
             {sceneName}
           </span>
           <span
@@ -90,6 +90,9 @@ export default function BottomBar({
         <span className="whitespace-nowrap text-xs font-medium text-white/80 sm:hidden">
           {sceneName}
         </span>
+
+        {/* Separator between scene info and controls */}
+        <div className="w-px h-4 bg-white/10 hidden sm:block" />
 
         {/* Next scene arrow */}
         <button
@@ -302,13 +305,13 @@ export default function BottomBar({
       {/* Inline style for range slider thumb */}
       <style dangerouslySetInnerHTML={{ __html: `
         .volume-slider::-webkit-slider-thumb {
-          -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%;
+          -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
           background: rgba(255,255,255,0.8); cursor: pointer;
           box-shadow: 0 0 4px rgba(0,0,0,0.3); transition: transform 0.15s ease;
         }
         .volume-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
         .volume-slider::-moz-range-thumb {
-          width: 12px; height: 12px; border-radius: 50%;
+          width: 14px; height: 14px; border-radius: 50%;
           background: rgba(255,255,255,0.8); cursor: pointer; border: none;
           box-shadow: 0 0 4px rgba(0,0,0,0.3);
         }

@@ -362,7 +362,7 @@ export default function FocusView({
 
       {/* 左下角计时器面板 */}
       <div className={`fixed left-3 bottom-20 z-20 w-[calc(100vw-24px)] transition-all duration-500 sm:left-6 sm:bottom-24 sm:w-[320px] ${isHidden ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
-        <div className="glass-strong rounded-2xl p-4 sm:p-6">
+        <div className="glass-strong rounded-2xl p-4 border-t border-white/[0.06] sm:p-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <DailyGoal studySeconds={studySeconds} />

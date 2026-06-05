@@ -13,6 +13,7 @@ const ASSETS = [
 // 视频文件单独缓存（体积大，用 cache-first 策略）
 const VIDEO_CACHE = 'focus-room-videos-v1'
 const VIDEO_PATHS = [
+  BASE_PATH + '/videos/landing-bg.mp4',
   BASE_PATH + '/videos/mountain-lake.mp4',
   BASE_PATH + '/videos/seaside.mp4',
   BASE_PATH + '/videos/forest.mp4',

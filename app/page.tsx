@@ -81,7 +81,7 @@ function AppInner() {
     <main className="relative w-screen h-screen overflow-hidden bg-black">
       {/* 永远挂载的视频背景 — 不随页面切换卸载，始终可见 */}
       <div className="absolute inset-0">
-        <VideoBackground scene={sceneId} />
+        <VideoBackground scene={step === 'landing' ? 'landing' : sceneId} />
       </div>
 
       {/* 页面内容 — 在视频之上，随页面切换淡入淡出 */}
