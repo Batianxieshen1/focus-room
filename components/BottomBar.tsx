@@ -225,7 +225,7 @@ export default function BottomBar({
 
           {/* Sound mixer popup */}
           {showSoundPanel && (
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 max-h-[60vh] overflow-y-auto glass-strong rounded-2xl p-4 animate-fade-in shadow-lg z-50">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-96 max-h-[70vh] overflow-y-auto glass-strong rounded-2xl p-4 animate-fade-in shadow-lg z-50 scrollbar-thin">
               <SoundMixer />
             </div>
           )}

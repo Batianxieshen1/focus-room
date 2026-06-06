@@ -179,6 +179,21 @@ const translations = {
 
     // Sound mixer
     'sound.category': '白噪音',
+    'sound.tabSearch': '搜索',
+    'sound.tabUrl': '链接',
+    'sound.pasteUrl': '粘贴音频链接（mp3/wav/ogg）',
+    'sound.urlName': '曲目名称（可选）',
+    'sound.addUrl': '添加',
+    'sound.fetching': '下载中...',
+    'sound.fetchDone': '添加成功',
+    'sound.fetchError': '下载失败',
+    'sound.preview': '试听',
+    'sound.addFull': '添加',
+    'sound.duration': '时长',
+    'sound.myMusic': '我的音乐',
+    'sound.searchAndAdd': '搜索与添加',
+    'sound.localImport': '导入本地',
+    'sound.buffering': '加载中...',
 
     // Onboarding
     'onboard.step1': '选择一个窗外场景',
@@ -414,6 +429,21 @@ const translations = {
 
     // Sound mixer
     'sound.category': 'White Noise',
+    'sound.tabSearch': 'Search',
+    'sound.tabUrl': 'URL',
+    'sound.pasteUrl': 'Paste audio URL (mp3/wav/ogg)',
+    'sound.urlName': 'Track name (optional)',
+    'sound.addUrl': 'Add',
+    'sound.fetching': 'Downloading...',
+    'sound.fetchDone': 'Added successfully',
+    'sound.fetchError': 'Download failed',
+    'sound.preview': 'Preview',
+    'sound.addFull': 'Add',
+    'sound.duration': 'Duration',
+    'sound.myMusic': 'MY MUSIC',
+    'sound.searchAndAdd': 'SEARCH & ADD',
+    'sound.localImport': 'Import',
+    'sound.buffering': 'Loading...',
 
     // Onboarding
     'onboard.step1': 'Choose a window scene',
