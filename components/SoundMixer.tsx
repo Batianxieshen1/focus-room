@@ -116,9 +116,22 @@ export default function SoundMixer() {
   }
 
   // ---- YouTube search & play ----
-  const playYouTube = () => {
-    if (!ytQuery.trim()) return
-    setYtEmbedUrl(`https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(ytQuery)}&autoplay=1`)
+  // Pre-made ambient music playlists (YouTube)
+  const YT_PLAYLISTS = [
+    { id: 'PLFgquLnL59alCl_2TQvOiD5Vgm1h6G8SQ', name: 'Lofi Hip Hop', icon: '🎵' },
+    { id: 'PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf', name: 'Classical', icon: '🎻' },
+    { id: 'PL5f6dC0dEfUQh8DwGfxp_Y2dNz5aCgQk', name: 'Jazz & Blues', icon: '🎷' },
+    { id: 'PLbOY8hVF本质qGOy6eEMg3pJn1C1sVHxN', name: 'Nature Sounds', icon: '🌿' },
+  ]
+
+  const playYouTube = (query?: string) => {
+    const q = query || ytQuery.trim()
+    if (!q) return
+    window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`, '_blank')
+  }
+
+  const playYouTubePlaylist = (playlistId: string) => {
+    setYtEmbedUrl(`https://www.youtube.com/embed/videoseries?list=${playlistId}&autoplay=1`)
     setShowYtPlayer(true)
   }
 
@@ -344,6 +357,7 @@ export default function SoundMixer() {
         {/* Tab: YouTube */}
         {activeTab === 'youtube' && (
           <div className="flex flex-col gap-3">
+            {/* Search — opens YouTube in new tab */}
             <div className="flex gap-2">
               <input
                 type="text"
@@ -354,7 +368,7 @@ export default function SoundMixer() {
                 className="flex-1 px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-white text-xs placeholder:text-white/30 focus:outline-none focus:border-white/20"
               />
               <button
-                onClick={playYouTube}
+                onClick={() => playYouTube()}
                 className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.98] ${
                   ytQuery.trim()
                     ? 'bg-white/[0.1] text-white/80 hover:bg-white/[0.15]'
@@ -364,6 +378,23 @@ export default function SoundMixer() {
                 {t('sound.ytSearchBtn')}
               </button>
             </div>
+
+            {/* Pre-made ambient playlists */}
+            <div className="text-[10px] text-white/30 tracking-wider uppercase">{t('sound.ytHint')}</div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {YT_PLAYLISTS.map(pl => (
+                <button
+                  key={pl.id}
+                  onClick={() => playYouTubePlaylist(pl.id)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] transition-all duration-200 active:scale-95 text-left"
+                >
+                  <span>{pl.icon}</span>
+                  <span className="text-[11px] text-white/60">{pl.name}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Embedded YouTube player */}
             {showYtPlayer && (
               <div className="relative">
                 <iframe
@@ -378,11 +409,6 @@ export default function SoundMixer() {
                 >
                   {t('sound.ytClose')}
                 </button>
-              </div>
-            )}
-            {!showYtPlayer && (
-              <div className="text-[10px] text-white/30 text-center py-4">
-                {t('sound.ytHint')}
               </div>
             )}
           </div>

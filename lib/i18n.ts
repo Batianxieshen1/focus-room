@@ -205,7 +205,7 @@ const translations = {
     'sound.ytSearch': '搜索歌曲或艺术家...',
     'sound.ytSearchBtn': '搜索',
     'sound.ytClose': '关闭播放器',
-    'sound.ytHint': '搜索歌曲后会在下方播放',
+    'sound.ytHint': '推荐氛围音乐',
 
     // Onboarding
     'onboard.step1': '选择一个窗外场景',
@@ -467,7 +467,7 @@ const translations = {
     'sound.ytSearch': 'Search songs or artists...',
     'sound.ytSearchBtn': 'Search',
     'sound.ytClose': 'Close Player',
-    'sound.ytHint': 'Search a song and it will play below',
+    'sound.ytHint': 'Ambient playlists',
 
     // Onboarding
     'onboard.step1': 'Choose a window scene',
