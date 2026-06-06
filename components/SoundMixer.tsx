@@ -174,21 +174,25 @@ export default function SoundMixer() {
 
       stopPreview()
 
-      const audio = new Audio(result.previewUrl)
+      const audio = new Audio()
+      audio.preload = 'auto'
       previewAudioRef.current = audio
       setPreviewingId(id)
       setPreviewProgress(0)
 
-      // Wait for canplay before playing to avoid autoplay block
-      const onCanPlay = () => {
-        audio.removeEventListener('canplay', onCanPlay)
-        audio.play().catch(err => {
-          console.warn('Preview play failed:', err.message)
-          stopPreview()
-        })
-      }
-      audio.addEventListener('canplay', onCanPlay)
-      audio.load()
+      audio.src = result.previewUrl
+      audio.play().then(() => {
+        console.log('Preview started:', result.name)
+      }).catch(err => {
+        console.error('Preview play failed:', err.message)
+        // Retry after a short delay
+        setTimeout(() => {
+          audio.play().catch(e => {
+            console.error('Preview retry failed:', e.message)
+            stopPreview()
+          })
+        }, 500)
+      })
 
       const startTime = Date.now()
       const duration = Math.min(30, result.duration || 30)
@@ -232,16 +236,21 @@ export default function SoundMixer() {
   // ---- Add full from search (fetches preview as blob) ----
   const handleAddFull = async (result: SearchResult) => {
     try {
+      console.log('Fetching:', result.previewUrl)
       const res = await fetch(result.previewUrl)
+      console.log('Response status:', res.status, 'Content-Type:', res.headers.get('content-type'))
       const blob = await res.blob()
-      const file = new File([blob], `${result.name}.mp3`, { type: 'audio/mpeg' })
+      console.log('Blob size:', blob.size, 'type:', blob.type)
+      const file = new File([blob], `${result.name}.mp3`, { type: blob.type || 'audio/mpeg' })
       const success = await addCustomSound(result.name, file)
+      console.log('addCustomSound result:', success)
       if (success) {
         showNotification(t('sound.importSuccess'))
       } else {
         showNotification(t('sound.maxSizeError'))
       }
-    } catch {
+    } catch (err) {
+      console.error('Add failed:', err)
       showNotification(t('sound.fetchError'))
     }
   }
