@@ -19,6 +19,9 @@ const VIDEO_SOURCES: Record<string, string> = {
   'starry-sky': BASE_PATH + '/videos/starry-sky.mp4',
   'rainy-cafe': BASE_PATH + '/videos/rainy-cafe.mp4',
   'snowy-window': BASE_PATH + '/videos/snowy-window.mp4',
+  'campfire': BASE_PATH + '/videos/campfire.mp4',
+  'city-night': BASE_PATH + '/videos/city-night.mp4',
+  'starry-tent': BASE_PATH + '/videos/starry-tent.mp4',
 }
 
 function getNextSceneId(currentScene: string): string {

@@ -20,6 +20,9 @@ const VIDEO_PATHS = [
   BASE_PATH + '/videos/starry-sky.mp4',
   BASE_PATH + '/videos/rainy-cafe.mp4',
   BASE_PATH + '/videos/snowy-window.mp4',
+  BASE_PATH + '/videos/campfire.mp4',
+  BASE_PATH + '/videos/city-night.mp4',
+  BASE_PATH + '/videos/starry-tent.mp4',
 ]
 
 // 安装时缓存静态资源

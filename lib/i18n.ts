@@ -219,6 +219,15 @@ const translations = {
 
     // FocusTools confirm
     'tools.confirmDelete': '确定要删除这个链接吗？',
+
+    // Share card
+    'share.title': '分享成就',
+    'share.save': '保存图片',
+    'share.share': '分享',
+    'share.complete': '专注完成',
+    'share.pomodoros': '个番茄',
+    'share.study': '分钟学习',
+    'share.brand': 'Focus Room · 沉浸式自习室',
   },
   en: {
     // Tab names / toolbar
@@ -436,6 +445,15 @@ const translations = {
 
     // FocusTools confirm
     'tools.confirmDelete': 'Delete this link?',
+
+    // Share card
+    'share.title': 'Share Achievement',
+    'share.save': 'Save Image',
+    'share.share': 'Share',
+    'share.complete': 'Focus Complete',
+    'share.pomodoros': 'pomodoros',
+    'share.study': 'minutes studied',
+    'share.brand': 'Focus Room · Immersive Study',
   },
 } as const
 

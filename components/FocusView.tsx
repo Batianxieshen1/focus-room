@@ -17,6 +17,7 @@ const MemoPanel = lazy(() => import('@/components/MemoPanel'))
 const FocusTools = lazy(() => import('@/components/FocusTools'))
 const StudyStats = lazy(() => import('@/components/StudyStats'))
 const StudyCalendar = lazy(() => import('@/components/StudyCalendar'))
+const ShareCard = lazy(() => import('@/components/ShareCard'))
 
 export default function FocusView({
   currentScene,
@@ -33,6 +34,7 @@ export default function FocusView({
   const [showStats, setShowStats] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showShareCard, setShowShareCard] = useState(false)
   const [isHidden, setIsHidden] = useState(false)
   const [showHint, setShowHint] = useState(false)
   const [celebrating, setCelebrating] = useState(false)
@@ -431,9 +433,29 @@ export default function FocusView({
                 return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
               })())}
             </div>
-            <div className="text-[10px] text-white/30">{t('report.clickToDismiss')}</div>
+            <div className="flex gap-2 mt-3 justify-center">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowShareCard(true) }}
+                className="px-4 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-purple-500/80 to-pink-500/80 hover:from-purple-500 hover:to-pink-500 text-white transition-colors"
+              >
+                {t('share.title')}
+              </button>
+            </div>
+            <div className="text-[10px] text-white/30 mt-2">{t('report.clickToDismiss')}</div>
           </div>
         </div>
+      )}
+
+      {/* Share Card overlay */}
+      {showShareCard && (
+        <Suspense fallback={null}>
+          <ShareCard
+            pomodoros={reportPomodoros}
+            studyMinutes={Math.round(reportStudySeconds / 60)}
+            sceneName={currentScene.name}
+            onClose={() => setShowShareCard(false)}
+          />
+        </Suspense>
       )}
 
       <ShortcutToast />
