@@ -147,7 +147,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   // Load a sound's src only when first played, then set preload to auto
   const ensureLoaded = useCallback((audio: HTMLAudioElement, file: string) => {
-    if (!audio.src || audio.src === 'about:blank') {
+    if (!file) return
+    // Always set src to ensure the correct source is loaded
+    if (audio.src !== file) {
       audio.src = file
       audio.preload = 'auto'
     }
