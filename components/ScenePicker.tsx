@@ -163,12 +163,20 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
       <footer className="fixed bottom-0 left-0 right-0 z-10 px-4 pb-6 pt-3 safe-bottom sm:px-16 sm:pb-8 sm:static">
         <button
           onClick={handleEnter}
-          className="w-full max-w-2xl mx-auto block py-4 rounded-xl text-center text-base font-medium
-            bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/30
-            transition-all duration-300 hover:shadow-lg hover:shadow-white/5
-            animate-[fadeInUp_0.6s_ease-out_0.4s_both]"
+          disabled={entering}
+          className={`w-full max-w-2xl mx-auto block py-4 rounded-xl text-center text-base font-medium
+            bg-white/10 border border-white/20 transition-all duration-300
+            ${entering ? 'bg-white/20 border-white/30 scale-[1.02]' : 'hover:bg-white/20 hover:border-white/30 hover:shadow-lg hover:shadow-white/5'}
+            animate-[fadeInUp_0.6s_ease-out_0.4s_both]`}
         >
-          {t('picker.start')}
+          {entering ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              {t('picker.start').replace(' →', '')}
+            </span>
+          ) : (
+            t('picker.start')
+          )}
         </button>
       </footer>
 
