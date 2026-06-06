@@ -194,6 +194,13 @@ const translations = {
     'sound.searchAndAdd': '搜索与添加',
     'sound.localImport': '导入本地',
     'sound.buffering': '加载中...',
+    'sound.linkHint': '支持 MP3、WAV、OGG 格式的直链',
+    'sound.guide': '教程',
+    'sound.guideDesc': '使用教程',
+    'sound.guideStep1': '1. 在音乐网站找到歌曲',
+    'sound.guideStep2': '2. 右键点击 → 复制音频地址',
+    'sound.guideStep3': '3. 粘贴到「链接」输入框',
+    'sound.guideSource': '推荐：Pixabay Music、Free Music Archive',
 
     // Onboarding
     'onboard.step1': '选择一个窗外场景',
@@ -444,6 +451,13 @@ const translations = {
     'sound.searchAndAdd': 'SEARCH & ADD',
     'sound.localImport': 'Import',
     'sound.buffering': 'Loading...',
+    'sound.linkHint': 'Direct links to MP3, WAV, or OGG files',
+    'sound.guide': 'Guide',
+    'sound.guideDesc': 'How to get audio links',
+    'sound.guideStep1': '1. Find a song on a music website',
+    'sound.guideStep2': '2. Right-click -> Copy audio address',
+    'sound.guideStep3': '3. Paste into the URL input above',
+    'sound.guideSource': 'Recommended: Pixabay Music, Free Music Archive',
 
     // Onboarding
     'onboard.step1': 'Choose a window scene',
