@@ -201,6 +201,11 @@ const translations = {
     'sound.guideStep2': '2. 右键点击 → 复制音频地址',
     'sound.guideStep3': '3. 粘贴到「链接」输入框',
     'sound.guideSource': '推荐：Pixabay Music、Free Music Archive',
+    'sound.tabYoutube': 'YouTube',
+    'sound.ytSearch': '搜索歌曲或艺术家...',
+    'sound.ytSearchBtn': '搜索',
+    'sound.ytClose': '关闭播放器',
+    'sound.ytHint': '搜索歌曲后会在下方播放',
 
     // Onboarding
     'onboard.step1': '选择一个窗外场景',
@@ -458,6 +463,11 @@ const translations = {
     'sound.guideStep2': '2. Right-click -> Copy audio address',
     'sound.guideStep3': '3. Paste into the URL input above',
     'sound.guideSource': 'Recommended: Pixabay Music, Free Music Archive',
+    'sound.tabYoutube': 'YouTube',
+    'sound.ytSearch': 'Search songs or artists...',
+    'sound.ytSearchBtn': 'Search',
+    'sound.ytClose': 'Close Player',
+    'sound.ytHint': 'Search a song and it will play below',
 
     // Onboarding
     'onboard.step1': 'Choose a window scene',

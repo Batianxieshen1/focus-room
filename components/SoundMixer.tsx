@@ -50,7 +50,12 @@ export default function SoundMixer() {
   const [bufferingIds, setBufferingIds] = useState<Set<string>>(new Set())
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<'link' | 'guide'>('link')
+  const [activeTab, setActiveTab] = useState<'link' | 'guide' | 'youtube'>('youtube')
+
+  // YouTube state
+  const [ytQuery, setYtQuery] = useState('')
+  const [showYtPlayer, setShowYtPlayer] = useState(false)
+  const [ytEmbedUrl, setYtEmbedUrl] = useState('')
 
   // URL add state
   const [urlInput, setUrlInput] = useState('')
@@ -108,6 +113,13 @@ export default function SoundMixer() {
       showNotification(t('sound.fetchError'))
     }
     setFetchProgress(null)
+  }
+
+  // ---- YouTube search & play ----
+  const playYouTube = () => {
+    if (!ytQuery.trim()) return
+    setYtEmbedUrl(`https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(ytQuery)}&autoplay=1`)
+    setShowYtPlayer(true)
   }
 
   // Separate built-in and custom sounds
@@ -298,6 +310,16 @@ export default function SoundMixer() {
         {/* Tab bar */}
         <div className="flex gap-1 p-0.5 rounded-lg bg-white/[0.04]">
           <button
+            onClick={() => setActiveTab('youtube')}
+            className={`flex-1 py-1.5 text-[11px] rounded-md transition-all duration-200 ${
+              activeTab === 'youtube'
+                ? 'bg-white/[0.12] text-white/80'
+                : 'text-white/35 hover:text-white/55'
+            }`}
+          >
+            {t('sound.tabYoutube')}
+          </button>
+          <button
             onClick={() => setActiveTab('link')}
             className={`flex-1 py-1.5 text-[11px] rounded-md transition-all duration-200 ${
               activeTab === 'link'
@@ -318,6 +340,53 @@ export default function SoundMixer() {
             {t('sound.guide')}
           </button>
         </div>
+
+        {/* Tab: YouTube */}
+        {activeTab === 'youtube' && (
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={ytQuery}
+                onChange={e => setYtQuery(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && playYouTube()}
+                placeholder={t('sound.ytSearch')}
+                className="flex-1 px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-white text-xs placeholder:text-white/30 focus:outline-none focus:border-white/20"
+              />
+              <button
+                onClick={playYouTube}
+                className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.98] ${
+                  ytQuery.trim()
+                    ? 'bg-white/[0.1] text-white/80 hover:bg-white/[0.15]'
+                    : 'bg-white/[0.04] text-white/25 cursor-not-allowed'
+                }`}
+              >
+                {t('sound.ytSearchBtn')}
+              </button>
+            </div>
+            {showYtPlayer && (
+              <div className="relative">
+                <iframe
+                  src={ytEmbedUrl}
+                  className="w-full aspect-video rounded-lg"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+                <button
+                  onClick={() => setShowYtPlayer(false)}
+                  className="absolute top-2 right-2 px-2 py-1 rounded-md bg-black/60 text-white/80 text-[10px] hover:bg-black/80 transition-all duration-200"
+                >
+                  {t('sound.ytClose')}
+                </button>
+              </div>
+            )}
+            {!showYtPlayer && (
+              <div className="text-[10px] text-white/30 text-center py-4">
+                {t('sound.ytHint')}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Tab: Link */}
         {activeTab === 'link' && (
