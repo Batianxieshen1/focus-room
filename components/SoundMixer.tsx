@@ -94,6 +94,9 @@ export default function SoundMixer() {
         previewAudioRef.current.pause()
         previewAudioRef.current = null
       }
+      if (previewBlobUrlRef.current) {
+        URL.revokeObjectURL(previewBlobUrlRef.current)
+      }
       if (previewTimerRef.current) {
         clearInterval(previewTimerRef.current)
       }
@@ -149,11 +152,17 @@ export default function SoundMixer() {
   }
 
   // ---- Preview (30s from iTunes) ----
+  const previewBlobUrlRef = useRef<string | null>(null)
+
   const stopPreview = useCallback(() => {
     if (previewAudioRef.current) {
       previewAudioRef.current.pause()
       previewAudioRef.current.currentTime = 0
       previewAudioRef.current = null
+    }
+    if (previewBlobUrlRef.current) {
+      URL.revokeObjectURL(previewBlobUrlRef.current)
+      previewBlobUrlRef.current = null
     }
     if (previewTimerRef.current) {
       clearInterval(previewTimerRef.current)
@@ -164,7 +173,7 @@ export default function SoundMixer() {
   }, [])
 
   const startPreview = useCallback(
-    (result: SearchResult, idx: number) => {
+    async (result: SearchResult, idx: number) => {
       const id = `preview-${idx}`
       // If same track is playing, stop it
       if (previewingId === id) {
@@ -173,38 +182,38 @@ export default function SoundMixer() {
       }
 
       stopPreview()
-
-      const audio = new Audio()
-      audio.preload = 'auto'
-      previewAudioRef.current = audio
       setPreviewingId(id)
       setPreviewProgress(0)
 
-      audio.src = result.previewUrl
-      audio.play().then(() => {
-        console.log('Preview started:', result.name)
-      }).catch(err => {
-        console.error('Preview play failed:', err.message)
-        // Retry after a short delay
-        setTimeout(() => {
-          audio.play().catch(e => {
-            console.error('Preview retry failed:', e.message)
-            stopPreview()
-          })
-        }, 500)
-      })
+      try {
+        // Fetch as blob first — iTunes URLs can't be played directly
+        const res = await fetch(result.previewUrl)
+        const blob = await res.blob()
+        const blobUrl = URL.createObjectURL(blob)
+        previewBlobUrlRef.current = blobUrl
 
-      const startTime = Date.now()
-      const duration = Math.min(30, result.duration || 30)
-
-      previewTimerRef.current = setInterval(() => {
-        const elapsed = (Date.now() - startTime) / 1000
-        const pct = Math.min(100, (elapsed / duration) * 100)
-        setPreviewProgress(pct)
-        if (elapsed >= duration) {
+        const audio = new Audio(blobUrl)
+        previewAudioRef.current = audio
+        audio.play().catch(err => {
+          console.error('Preview play failed:', err.message)
           stopPreview()
-        }
-      }, 200)
+        })
+
+        const startTime = Date.now()
+        const duration = Math.min(30, result.duration || 30)
+
+        previewTimerRef.current = setInterval(() => {
+          const elapsed = (Date.now() - startTime) / 1000
+          const pct = Math.min(100, (elapsed / duration) * 100)
+          setPreviewProgress(pct)
+          if (elapsed >= duration) {
+            stopPreview()
+          }
+        }, 200)
+      } catch (err) {
+        console.error('Preview fetch failed:', err)
+        stopPreview()
+      }
     },
     [previewingId, stopPreview]
   )
