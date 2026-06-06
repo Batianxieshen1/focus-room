@@ -81,7 +81,7 @@ export default function FocusView({
 
   const anyPlaying = sounds.some(s => s.isPlaying)
 
-  // 场景切换时自动播放对应音频（支持混合：不中断已有的声音）
+  // 场景切换时自动播放对应音频
   useEffect(() => {
     if (prevSceneRef.current === currentScene.id) return
     prevSceneRef.current = currentScene.id
@@ -89,13 +89,18 @@ export default function FocusView({
     const mapping = SCENE_SOUND_MAP[currentScene.id]
     if (!mapping) return
 
-    const currentlyPlaying = soundsRef.current.filter(s => s.isPlaying)
+    // 先静音所有正在播放的声音
+    soundsRef.current.filter(s => s.isPlaying).forEach(s => {
+      if (s.id !== mapping.soundId) toggleSound(s.id)
+    })
 
-    // 如果没有任何声音在播放，自动播放新场景的声音
-    // 如果已有声音在播放，不中断（用户自己选择的声音组合）
-    if (currentlyPlaying.length === 0) {
-      toggleSound(mapping.soundId)
-    }
+    // 300ms 后播放新场景的音频（给淡出留时间）
+    setTimeout(() => {
+      const target = soundsRef.current.find(s => s.id === mapping.soundId)
+      if (target && !target.isPlaying) {
+        toggleSound(mapping.soundId)
+      }
+    }, 300)
   }, [currentScene.id, toggleSound])
 
   // 首次进入专注页时自动播放场景音频
