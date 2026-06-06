@@ -5,8 +5,10 @@ export const metadata: Metadata = {
   metadataBase: process.env.NEXT_PUBLIC_SITE_URL
     ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
     : undefined,
-  title: "Focus Room | 沉浸式自习室",
+  title: "Focus Room",
   description: "一个让你专注学习的沉浸式环境，包含动态自然场景、白噪音和计时器",
+  keywords: ['专注', '学习', '番茄钟', '白噪音', '自习室', 'focus', 'study', 'pomodoro', 'white noise'],
+  authors: [{ name: 'Focus Room' }],
   manifest: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/manifest.json`,
   appleWebApp: {
     capable: true,

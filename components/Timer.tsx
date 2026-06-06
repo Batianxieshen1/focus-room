@@ -126,7 +126,9 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
               />
             </svg>
           )}
-          <div className="font-timer text-white z-10 drop-shadow-lg">
+          <div className={`font-timer text-white z-10 drop-shadow-lg transition-all duration-300 ${
+            timer.notify ? 'text-amber-300 drop-shadow-[0_0_20px_rgba(251,191,36,0.5)]' : ''
+          }`}>
             {timer.displayTime}
           </div>
         </div>
