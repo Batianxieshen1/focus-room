@@ -179,7 +179,16 @@ export default function SoundMixer() {
       setPreviewingId(id)
       setPreviewProgress(0)
 
-      audio.play().catch(() => {})
+      // Wait for canplay before playing to avoid autoplay block
+      const onCanPlay = () => {
+        audio.removeEventListener('canplay', onCanPlay)
+        audio.play().catch(err => {
+          console.warn('Preview play failed:', err.message)
+          stopPreview()
+        })
+      }
+      audio.addEventListener('canplay', onCanPlay)
+      audio.load()
 
       const startTime = Date.now()
       const duration = Math.min(30, result.duration || 30)
