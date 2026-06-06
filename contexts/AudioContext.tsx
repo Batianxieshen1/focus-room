@@ -177,14 +177,26 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       const audio = getAudio(s)
 
       if (!s.isPlaying) {
+        const needLoad = !audio.src || audio.src === 'about:blank' || audio.readyState < 2
         ensureLoaded(audio, s.file)
         const targetVol = s.volume / 100
         audio.volume = 0
-        audio.play().then(() => {
-          console.log('Audio playing:', s.name, 'src:', audio.src?.substring(0, 50))
-        }).catch(err => {
-          console.error('Audio play failed:', s.name, err.message)
-        })
+
+        const doPlay = () => {
+          audio.play().then(() => {
+            console.log('Audio playing:', s.name)
+          }).catch(err => {
+            console.error('Audio play failed:', s.name, err.message)
+          })
+        }
+
+        if (needLoad) {
+          audio.oncanplay = () => { audio.oncanplay = null; doPlay() }
+          audio.load()
+        } else {
+          doPlay()
+        }
+
         const { cancel } = fadeVolume(audio, 0, targetVol, 500)
         registerFade(id, cancel)
         return { ...s, isPlaying: true }

@@ -193,8 +193,19 @@ export default function SoundMixer() {
         previewBlobUrlRef.current = blobUrl
 
         const audio = new Audio(blobUrl)
+        audio.preload = 'auto'
         previewAudioRef.current = audio
-        audio.play().catch(err => {
+
+        // Must call load() then wait for canplay before play()
+        await new Promise<void>((resolve, reject) => {
+          audio.oncanplay = () => resolve()
+          audio.onerror = () => reject(new Error(audio.error?.message || 'load failed'))
+          audio.load()
+        })
+
+        audio.play().then(() => {
+          console.log('Preview started OK')
+        }).catch(err => {
           console.error('Preview play failed:', err.message)
           stopPreview()
         })
