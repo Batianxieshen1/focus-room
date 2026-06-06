@@ -5,7 +5,7 @@ import { useAudioContext } from '@/contexts/AudioContext'
 import { t } from '@/lib/i18n'
 
 const ALLOWED_TYPES = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/x-wav']
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
 
 export default function SoundMixer() {
   const { sounds, toggleSound, setVolume, muteAll, unmuteAll, addCustomSound, removeCustomSound } = useAudioContext()
@@ -18,9 +18,12 @@ export default function SoundMixer() {
     setTimeout(() => setNotification(null), 2000)
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    // Reset input so the same file can be selected again
+    e.target.value = ''
 
     // Validate type
     if (!ALLOWED_TYPES.includes(file.type) && !file.name.match(/\.(mp3|wav|ogg)$/i)) {
@@ -34,21 +37,13 @@ export default function SoundMixer() {
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = () => {
-      const dataUrl = reader.result as string
-      const name = file.name.replace(/\.[^.]+$/, '').slice(0, 12)
-      const success = addCustomSound(name, dataUrl)
-      if (success) {
-        showNotification(t('sound.importSuccess'))
-      } else {
-        showNotification(t('sound.totalSizeError'))
-      }
+    const name = file.name.replace(/\.[^.]+$/, '').slice(0, 12)
+    const success = await addCustomSound(name, file)
+    if (success) {
+      showNotification(t('sound.importSuccess'))
+    } else {
+      showNotification(t('sound.maxSizeError'))
     }
-    reader.readAsDataURL(file)
-
-    // Reset input so the same file can be selected again
-    e.target.value = ''
   }
 
   return (

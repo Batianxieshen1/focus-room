@@ -72,13 +72,13 @@ const translations = {
     'sound.addCustom': '添加',
     'sound.removeCustom': '移除',
     'sound.customSound': '自定义',
-    'sound.maxSizeError': '音频文件不能超过 5MB',
+    'sound.maxSizeError': '音频文件不能超过 50MB',
     'sound.totalSizeError': '自定义音效总大小不能超过 5MB',
     'sound.formatError': '不支持的音频格式',
     'sound.importLocal': '导入本地音乐',
     'sound.importSuccess': '导入成功',
     'sound.importError': '文件格式不支持',
-    'sound.importSizeError': '文件太大（最大 5MB）',
+    'sound.importSizeError': '文件太大（最大 50MB）',
     'shortcut.dismiss': '不再显示',
 
     // TopNav
@@ -302,13 +302,13 @@ const translations = {
     'sound.addCustom': 'Add',
     'sound.removeCustom': 'Remove',
     'sound.customSound': 'Custom',
-    'sound.maxSizeError': 'Audio file must be under 5MB',
+    'sound.maxSizeError': 'Audio file must be under 50MB',
     'sound.totalSizeError': 'Total custom sounds must be under 5MB',
     'sound.formatError': 'Unsupported audio format',
     'sound.importLocal': 'Import Local Music',
     'sound.importSuccess': 'Import successful',
     'sound.importError': 'File format not supported',
-    'sound.importSizeError': 'File too large (max 5MB)',
+    'sound.importSizeError': 'File too large (max 50MB)',
     'shortcut.dismiss': 'Don\'t show again',
 
     // TopNav

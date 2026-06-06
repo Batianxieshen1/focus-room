@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, createContext, useContext, ReactNode } from 'react'
 import { storageGet, storageSet } from '@/lib/storage'
+import { saveCustomSound, loadCustomSounds, deleteCustomSound } from '@/lib/audioDB'
 
 export interface Sound {
   id: string
@@ -19,7 +20,7 @@ interface AudioContextValue {
   setVolume: (id: string, volume: number) => void
   muteAll: () => void
   unmuteAll: () => void
-  addCustomSound: (name: string, dataUrl: string) => boolean
+  addCustomSound: (name: string, file: File) => Promise<boolean>
   removeCustomSound: (id: string) => void
 }
 
@@ -38,8 +39,7 @@ const SOUND_DEFAULTS: Omit<Sound, 'volume'>[] = [
   { id: 'whitenoise', name: '白噪音', icon: '📻', isPlaying: false, file: BASE_PATH + '/sounds/whitenoise.wav' },
 ]
 
-const CUSTOM_SOUNDS_KEY = 'focus-room-custom-sounds'
-const MAX_CUSTOM_SIZE = 5 * 1024 * 1024 // 5MB total
+const MAX_CUSTOM_SIZE = 50 * 1024 * 1024 // 50MB per file
 
 function loadVolumes(): Record<string, number> {
   if (typeof window === 'undefined') return {}
@@ -50,35 +50,12 @@ function saveVolumes(volumes: Record<string, number>) {
   storageSet('focus-room-volumes', volumes)
 }
 
-function loadCustomSounds(): Omit<Sound, 'volume'>[] {
-  if (typeof window === 'undefined') return []
-  return storageGet<Omit<Sound, 'volume'>[]>(CUSTOM_SOUNDS_KEY, [])
-}
-
-function saveCustomSounds(sounds: Omit<Sound, 'volume'>[]) {
-  storageSet(CUSTOM_SOUNDS_KEY, sounds)
-}
-
-function getTotalCustomSize(): number {
-  const customs = loadCustomSounds()
-  return customs.reduce((sum, s) => sum + (s.file ? Math.round((s.file.length * 3) / 4) : 0), 0)
-}
-
-function getInitialSounds(): Sound[] {
+function getBuiltInSounds(): Sound[] {
   const savedVolumes = loadVolumes()
-  const customSounds = loadCustomSounds()
-
-  const builtIn = SOUND_DEFAULTS.map(s => ({
+  return SOUND_DEFAULTS.map(s => ({
     ...s,
     volume: savedVolumes[s.id] ?? 50,
   }))
-
-  const customs = customSounds.map(s => ({
-    ...s,
-    volume: savedVolumes[s.id] ?? 50,
-  }))
-
-  return [...builtIn, ...customs]
 }
 
 // Fade volume over a duration. Returns a cancel function to abort the fade.
@@ -112,11 +89,32 @@ function fadeVolume(
 }
 
 export function AudioProvider({ children }: { children: ReactNode }) {
-  const [sounds, setSounds] = useState<Sound[]>(getInitialSounds)
+  const [sounds, setSounds] = useState<Sound[]>(getBuiltInSounds)
   const audioMapRef = useRef<Map<string, HTMLAudioElement>>(new Map())
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   // Track active fade cancel functions per sound ID
   const fadeCancelsRef = useRef<Map<string, (() => void)[]>>(new Map())
+  const [customSoundsLoaded, setCustomSoundsLoaded] = useState(false)
+
+  // Load custom sounds from IndexedDB on mount
+  useEffect(() => {
+    loadCustomSounds().then(stored => {
+      const savedVolumes = loadVolumes()
+      const customs: Sound[] = stored.map(s => ({
+        id: s.id,
+        name: s.name,
+        icon: '\u{1f3b5}',
+        volume: savedVolumes[s.id] ?? 50,
+        isPlaying: false,
+        file: s.fileUrl,
+        isCustom: true,
+      }))
+      setSounds(prev => [...prev, ...customs])
+      setCustomSoundsLoaded(true)
+    }).catch(() => {
+      setCustomSoundsLoaded(true)
+    })
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -250,30 +248,30 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }))
   }, [getAudio, cancelFades, registerFade])
 
-  const addCustomSound = useCallback((name: string, dataUrl: string): boolean => {
-    // Check individual file size (approximate from data URL length)
-    const approxSize = Math.round((dataUrl.length * 3) / 4)
-    if (approxSize > MAX_CUSTOM_SIZE) return false
-
-    // Check total size
-    const currentTotal = getTotalCustomSize()
-    if (currentTotal + approxSize > MAX_CUSTOM_SIZE) return false
+  const addCustomSound = useCallback(async (name: string, file: File): Promise<boolean> => {
+    // Validate individual file size
+    if (file.size > MAX_CUSTOM_SIZE) return false
 
     const id = `custom-${Date.now()}`
-    const newSound: Omit<Sound, 'volume'> = {
+    const blob = new Blob([await file.arrayBuffer()], { type: file.type })
+
+    // Save to IndexedDB
+    await saveCustomSound(id, name, blob)
+
+    // Create object URL for playback
+    const fileUrl = URL.createObjectURL(blob)
+
+    const newSound: Sound = {
       id,
       name,
-      icon: '🎵',
+      icon: '\u{1f3b5}',
+      volume: 50,
       isPlaying: false,
-      file: dataUrl,
+      file: fileUrl,
       isCustom: true,
     }
 
-    const customSounds = loadCustomSounds()
-    customSounds.push(newSound)
-    saveCustomSounds(customSounds)
-
-    setSounds(prev => [...prev, { ...newSound, volume: 50 }])
+    setSounds(prev => [...prev, newSound])
     return true
   }, [])
 
@@ -288,8 +286,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
     setSounds(prev => prev.filter(s => s.id !== id))
 
-    const customSounds = loadCustomSounds().filter(s => s.id !== id)
-    saveCustomSounds(customSounds)
+    // Delete from IndexedDB
+    deleteCustomSound(id).catch(() => {})
   }, [cancelFades])
 
   return (
