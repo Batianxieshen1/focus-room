@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { t } from '@/lib/i18n'
 import ShortcutIndicator from './ShortcutIndicator'
+import SoundMixer from './SoundMixer'
 
 interface Props {
   sceneName: string
@@ -41,6 +42,8 @@ export default function BottomBar({
 }: Props) {
   const [showSleepMenu, setShowSleepMenu] = useState(false)
   const sleepMenuRef = useRef<HTMLDivElement>(null)
+  const [showSoundPanel, setShowSoundPanel] = useState(false)
+  const soundPanelRef = useRef<HTMLDivElement>(null)
 
   // Close sleep menu on outside click
   useEffect(() => {
@@ -53,6 +56,18 @@ export default function BottomBar({
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [showSleepMenu])
+
+  // Close sound panel on outside click
+  useEffect(() => {
+    if (!showSoundPanel) return
+    const handleClick = (e: MouseEvent) => {
+      if (soundPanelRef.current && !soundPanelRef.current.contains(e.target as Node)) {
+        setShowSoundPanel(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showSoundPanel])
 
   const handleSleepSelect = (minutes: number | null) => {
     onSetSleepTimer(minutes)
@@ -190,6 +205,31 @@ export default function BottomBar({
             </svg>
           )}
         </button>
+
+        {/* Sound mixer toggle */}
+        <div className="relative" ref={soundPanelRef}>
+          <button
+            onClick={() => { setShowSoundPanel(prev => !prev); setShowSleepMenu(false) }}
+            className={`flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 active:scale-95 ${
+              showSoundPanel ? 'bg-white/15 text-white/90' : 'text-white/50'
+            }`}
+            aria-label={t('bar.soundMixer')}
+            title={t('bar.soundMixer')}
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18V5l12-2v13" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="16" r="3" />
+            </svg>
+          </button>
+
+          {/* Sound mixer popup */}
+          {showSoundPanel && (
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 max-h-[60vh] overflow-y-auto glass-strong rounded-2xl p-4 animate-fade-in shadow-lg z-50">
+              <SoundMixer />
+            </div>
+          )}
+        </div>
 
         {/* Divider */}
         <div className="mx-0.5 h-6 w-px bg-white/15 sm:mx-1" />

@@ -79,6 +79,10 @@ const translations = {
     'sound.importSuccess': '导入成功',
     'sound.importError': '文件格式不支持',
     'sound.importSizeError': '文件太大（最大 50MB）',
+    'sound.searchOnline': '搜索在线音乐',
+    'sound.searchPlaceholder': '搜索歌曲或艺术家...',
+    'sound.searching': '搜索中...',
+    'sound.noResults': '未找到结果',
     'shortcut.dismiss': '不再显示',
 
     // TopNav
@@ -101,6 +105,7 @@ const translations = {
     'bar.prevScene': '上一个场景',
     'bar.nextScene': '下一个场景',
     'bar.sleepTimer': '睡眠定时',
+    'bar.soundMixer': '音效面板',
     'bar.sleepOff': '关闭',
     'bar.sleep30': '30 分钟',
     'bar.sleep60': '60 分钟',
@@ -309,6 +314,10 @@ const translations = {
     'sound.importSuccess': 'Import successful',
     'sound.importError': 'File format not supported',
     'sound.importSizeError': 'File too large (max 50MB)',
+    'sound.searchOnline': 'Search Online Music',
+    'sound.searchPlaceholder': 'Search songs or artists...',
+    'sound.searching': 'Searching...',
+    'sound.noResults': 'No results found',
     'shortcut.dismiss': 'Don\'t show again',
 
     // TopNav
@@ -331,6 +340,7 @@ const translations = {
     'bar.prevScene': 'Previous scene',
     'bar.nextScene': 'Next scene',
     'bar.sleepTimer': 'Sleep Timer',
+    'bar.soundMixer': 'Sound Mixer',
     'bar.sleepOff': 'Off',
     'bar.sleep30': '30 min',
     'bar.sleep60': '60 min',

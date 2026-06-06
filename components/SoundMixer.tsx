@@ -13,6 +13,11 @@ export default function SoundMixer() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [notification, setNotification] = useState<string | null>(null)
 
+  // Online music search
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<Array<{name: string, artist: string, previewUrl: string, artwork: string}>>([])
+  const [searching, setSearching] = useState(false)
+
   const showNotification = (msg: string) => {
     setNotification(msg)
     setTimeout(() => setNotification(null), 2000)
@@ -43,6 +48,42 @@ export default function SoundMixer() {
       showNotification(t('sound.importSuccess'))
     } else {
       showNotification(t('sound.maxSizeError'))
+    }
+  }
+
+  const searchMusic = async () => {
+    if (!searchQuery.trim()) return
+    setSearching(true)
+    try {
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(searchQuery)}&media=music&limit=8`)
+      const data = await res.json()
+      setSearchResults(data.results.map((r: any) => ({
+        name: r.trackName.slice(0, 20),
+        artist: r.artistName,
+        previewUrl: r.previewUrl,
+        artwork: r.artworkUrl60,
+      })))
+    } catch {
+      // Silently handle errors
+    }
+    setSearching(false)
+  }
+
+  const handlePreviewAdd = async (result: { name: string, artist: string, previewUrl: string }) => {
+    try {
+      const res = await fetch(result.previewUrl)
+      const blob = await res.blob()
+      const file = new File([blob], `${result.name}.mp3`, { type: 'audio/mpeg' })
+      const success = await addCustomSound(result.name, file)
+      if (success) {
+        showNotification(t('sound.importSuccess'))
+      } else {
+        showNotification(t('sound.maxSizeError'))
+      }
+    } catch {
+      // Fallback: just play preview
+      const audio = new Audio(result.previewUrl)
+      audio.play()
     }
   }
 
@@ -140,6 +181,52 @@ export default function SoundMixer() {
           ))}
         </div>
       )}
+
+      {/* Divider */}
+      <div className="h-px bg-white/10" />
+
+      {/* Online music search */}
+      <div className="flex flex-col gap-2.5">
+        <span className="text-[10px] text-white/40 tracking-widest uppercase">{t('sound.searchOnline')}</span>
+
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && searchMusic()}
+            placeholder={t('sound.searchPlaceholder')}
+            className="w-full px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-white text-xs placeholder:text-white/30 focus:outline-none focus:border-white/20"
+          />
+          <button
+            onClick={searchMusic}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+            disabled={searching}
+          >
+            {searching ? '...' : '\u{1F50D}'}
+          </button>
+        </div>
+
+        {searchResults.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+            {searchResults.map((r, i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-32 p-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] cursor-pointer transition-all"
+                onClick={() => handlePreviewAdd(r)}
+              >
+                <img src={r.artwork} className="w-full rounded-md mb-1" alt="" />
+                <div className="text-[10px] text-white/70 truncate">{r.name}</div>
+                <div className="text-[9px] text-white/40 truncate">{r.artist}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {searchResults.length === 0 && !searching && searchQuery.trim() !== '' && (
+          <div className="text-[10px] text-white/30 text-center py-2">{t('sound.noResults')}</div>
+        )}
+      </div>
     </div>
   )
 }
