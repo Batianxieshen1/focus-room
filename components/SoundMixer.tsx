@@ -52,11 +52,31 @@ export default function SoundMixer() {
   // Tab state
   const [activeTab, setActiveTab] = useState<'link' | 'netease'>('netease')
 
-  // NetEase Cloud Music state
-  const [neteaseQuery, setNeteaseQuery] = useState('')
-  const [neteaseResults, setNeteaseResults] = useState<any[]>([])
-  const [neteaseSearching, setNeteaseSearching] = useState(false)
-  const [playingSong, setPlayingSong] = useState<{ id: number; name: string; artist: string } | null>(null)
+  // NetEase Cloud Music — playlist embed
+  const [playlistUrl, setPlaylistUrl] = useState('')
+  const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null)
+
+  // Preset study music playlists
+  const PRESET_PLAYLISTS = [
+    { id: '2829883282', name: '学习工作', icon: '📚' },
+    { id: '1972031547', name: '专注白噪音', icon: '🌧' },
+    { id: '2482252552', name: '轻音乐', icon: '🎵' },
+    { id: '3778678', name: '古典钢琴', icon: '🎹' },
+  ]
+
+  const extractPlaylistId = (url: string): string | null => {
+    // Match playlist ID from various NetEase URL formats
+    const match = url.match(/playlist[?&]id=(\d+)/) || url.match(/\/playlist\/(\d+)/)
+    return match ? match[1] : null
+  }
+
+  const handlePlaylistUrl = () => {
+    const id = extractPlaylistId(playlistUrl.trim())
+    if (id) {
+      setActivePlaylistId(id)
+      setPlaylistUrl('')
+    }
+  }
 
   // URL add state
   const [urlInput, setUrlInput] = useState('')
@@ -114,36 +134,6 @@ export default function SoundMixer() {
       showNotification(t('sound.fetchError'))
     }
     setFetchProgress(null)
-  }
-
-  // ---- NetEase Cloud Music search & play ----
-  const searchNetease = async () => {
-    if (!neteaseQuery.trim()) return
-    setNeteaseSearching(true)
-    try {
-      const res = await fetch(
-        `https://music.163.com/api/search/get/web?s=${encodeURIComponent(neteaseQuery)}&type=1&limit=8`
-      )
-      const data = await res.json()
-      setNeteaseResults(data.result?.songs || [])
-    } catch {
-      setNeteaseResults([])
-    }
-    setNeteaseSearching(false)
-  }
-
-  const playNetease = (song: any) => {
-    setPlayingSong({
-      id: song.id,
-      name: song.name,
-      artist: song.artists?.map((a: any) => a.name).join(', ') || '',
-    })
-  }
-
-  const formatDuration = (ms: number) => {
-    const m = Math.floor(ms / 60000)
-    const s = Math.floor((ms % 60000) / 1000)
-    return `${m}:${s.toString().padStart(2, '0')}`
   }
 
   // Separate built-in and custom sounds
@@ -358,75 +348,62 @@ export default function SoundMixer() {
         {/* Tab: NetEase Cloud Music */}
         {activeTab === 'netease' && (
           <div className="flex flex-col gap-3">
-            {/* Search */}
+            {/* Preset playlists */}
+            <div className="text-[10px] text-white/30 tracking-wider uppercase">{t('sound.neteaseHint')}</div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {PRESET_PLAYLISTS.map(pl => (
+                <button
+                  key={pl.id}
+                  onClick={() => setActivePlaylistId(pl.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 active:scale-95 text-left ${
+                    activePlaylistId === pl.id
+                      ? 'bg-white/[0.12] text-white/80'
+                      : 'bg-white/[0.04] hover:bg-white/[0.08] text-white/60'
+                  }`}
+                >
+                  <span>{pl.icon}</span>
+                  <span className="text-[11px]">{pl.name}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Custom playlist URL */}
             <div className="flex gap-2">
               <input
                 type="text"
-                value={neteaseQuery}
-                onChange={e => setNeteaseQuery(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && searchNetease()}
-                placeholder={t('sound.neteaseSearch')}
+                value={playlistUrl}
+                onChange={e => setPlaylistUrl(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handlePlaylistUrl()}
+                placeholder={t('sound.neteasePasteUrl')}
                 className="flex-1 px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-white text-xs placeholder:text-white/30 focus:outline-none focus:border-white/20"
               />
               <button
-                onClick={searchNetease}
-                className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.98] ${
-                  neteaseQuery.trim()
+                onClick={handlePlaylistUrl}
+                className={`px-3 py-2 rounded-lg text-xs transition-all duration-200 active:scale-[0.98] ${
+                  playlistUrl.trim()
                     ? 'bg-white/[0.1] text-white/80 hover:bg-white/[0.15]'
-                    : 'bg-white/[0.04] text-white/25 cursor-not-allowed'
+                    : 'bg-white/[0.04] text-white/25'
                 }`}
               >
                 {t('sound.neteaseSearchBtn')}
               </button>
             </div>
 
-            {/* Playing now */}
-            {playingSong && (
-              <div className="rounded-lg bg-white/[0.04] p-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] text-white/30">{t('sound.neteasePlaying')}</span>
-                  <span className="text-xs text-white/70">{playingSong.name}</span>
-                  <span className="text-[10px] text-white/40">{playingSong.artist}</span>
-                </div>
+            {/* Embedded player */}
+            {activePlaylistId && (
+              <div className="rounded-xl overflow-hidden border border-white/[0.06]">
                 <iframe
-                  src={`https://music.163.com/outchain/player?type=2&id=${playingSong.id}&auto=1&height=66`}
-                  className="w-full rounded-lg"
-                  style={{ height: '66px' }}
+                  src={`https://music.163.com/outchain/player?type=0&id=${activePlaylistId}&auto=0&height=430`}
+                  className="w-full"
+                  style={{ height: '430px' }}
                   frameBorder="no"
-                  allow="autoplay"
                 />
               </div>
             )}
 
-            {/* Search results */}
-            {neteaseSearching && (
-              <div className="text-center text-white/30 text-xs py-4">{t('sound.neteaseSearching')}</div>
-            )}
-            {!neteaseSearching && neteaseResults.length === 0 && !playingSong && (
-              <div className="text-center text-white/25 text-[10px] py-4">{t('sound.neteaseHint')}</div>
-            )}
-            {!neteaseSearching && neteaseResults.length > 0 && (
-              <div className="flex flex-col gap-1 max-h-60 overflow-y-auto custom-scrollbar">
-                {neteaseResults.map((song: any) => (
-                  <button
-                    key={song.id}
-                    onClick={() => playNetease(song)}
-                    className={`flex items-center gap-3 p-2 rounded-lg transition-all duration-200 active:scale-[0.98] text-left ${
-                      playingSong?.id === song.id
-                        ? 'bg-white/[0.12]'
-                        : 'bg-white/[0.03] hover:bg-white/[0.06]'
-                    }`}
-                  >
-                    {song.album?.picUrl && (
-                      <img src={song.album.picUrl} className="w-8 h-8 rounded object-cover flex-shrink-0" alt="" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs text-white/70 truncate">{song.name}</div>
-                      <div className="text-[10px] text-white/35 truncate">{song.artists?.map((a: any) => a.name).join(', ')}</div>
-                    </div>
-                    <span className="text-[10px] text-white/25 tabular-nums flex-shrink-0">{formatDuration(song.duration)}</span>
-                  </button>
-                ))}
+            {!activePlaylistId && (
+              <div className="text-center text-white/20 text-[10px] py-6">
+                {t('sound.neteaseNoResults')}
               </div>
             )}
           </div>

@@ -196,12 +196,10 @@ const translations = {
     'sound.buffering': '加载中...',
     'sound.linkHint': '支持 MP3、WAV、OGG 格式的直链',
     'sound.tabNetease': '音乐',
-    'sound.neteaseSearch': '搜索歌曲或艺术家...',
-    'sound.neteaseSearchBtn': '搜索',
-    'sound.neteaseSearching': '搜索中...',
-    'sound.neteaseHint': '搜索你喜欢的歌曲',
-    'sound.neteasePlaying': '正在播放',
-    'sound.neteaseNoResults': '未找到结果',
+    'sound.neteasePasteUrl': '粘贴网易云歌单链接...',
+    'sound.neteaseSearchBtn': '打开',
+    'sound.neteaseHint': '推荐歌单',
+    'sound.neteaseNoResults': '选择一个歌单或粘贴链接',
 
     // Onboarding
     'onboard.step1': '选择一个窗外场景',
@@ -491,12 +489,10 @@ const translations = {
     'sound.buffering': 'Loading...',
     'sound.linkHint': 'Direct links to MP3, WAV, or OGG files',
     'sound.tabNetease': 'Music',
-    'sound.neteaseSearch': 'Search songs or artists...',
-    'sound.neteaseSearchBtn': 'Search',
-    'sound.neteaseSearching': 'Searching...',
-    'sound.neteaseHint': 'Search for your favorite songs',
-    'sound.neteasePlaying': 'Now Playing',
-    'sound.neteaseNoResults': 'No results found',
+    'sound.neteasePasteUrl': 'Paste NetEase playlist URL...',
+    'sound.neteaseSearchBtn': 'Open',
+    'sound.neteaseHint': 'Preset Playlists',
+    'sound.neteaseNoResults': 'Select a playlist or paste a URL',
 
     // Onboarding
     'onboard.step1': 'Choose a window scene',
