@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Scene, SCENES, SCENE_GRADIENTS } from '@/components/SceneSelector'
+import { Scene, SCENES, SCENE_GRADIENTS, getScenes } from '@/components/SceneSelector'
 import { t } from '@/lib/i18n'
 
 interface Props {
@@ -13,11 +13,12 @@ interface Props {
 
 export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onEnter }: Props) {
   const [entering, setEntering] = useState(false)
-  const selectedScene = SCENES.find((s) => s.id === currentSceneId) || SCENES[0]
+  const scenes = getScenes()
+  const selectedScene = scenes.find((s) => s.id === currentSceneId) || scenes[0]
 
   const handleSelect = (id: string) => {
     if (id === currentSceneId) return
-    const scene = SCENES.find(s => s.id === id)
+    const scene = scenes.find(s => s.id === id)
     if (scene) onSelectScene(scene)
   }
 
@@ -58,10 +59,7 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
           CHOOSE YOUR WINDOW
         </h1>
 
-        <button className="flex items-center gap-2 px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
-          <span>🎵</span>
-          <span>{t('picker.music')}</span>
-        </button>
+        <div /> {/* spacer */}
       </header>
 
       {/* Main content */}
@@ -97,7 +95,7 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
         {/* Right side - scene cards */}
         <div className="w-full flex flex-col items-center px-4 pb-24 sm:w-1/2 sm:flex-col sm:justify-center sm:items-center sm:px-8 sm:pb-0">
           <div className="w-full max-w-lg space-y-3 overflow-y-auto max-h-[calc(100vh-320px)] pr-2 sm:max-h-[calc(100vh-180px)] custom-scrollbar">
-            {SCENES.map((scene, index) => {
+            {scenes.map((scene, index) => {
               const isSelected = scene.id === currentSceneId
               return (
                 <button

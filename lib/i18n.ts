@@ -249,6 +249,43 @@ const translations = {
     // InstallPrompt
     'install.title': '安装到桌面',
     'install.desc': '像原生 App 一样使用',
+    'install.button': '安装',
+
+    // Scene names
+    'scene.mountainLakeName': '高山湖泊',
+    'scene.mountainLakeDesc': '水面如镜，远山含雪。安静得只听得见自己的呼吸。',
+    'scene.seasideName': '海边小屋',
+    'scene.seasideDesc': '潮水轻拍岸边，节奏像呼吸一样自然。思绪随浪花散开。',
+    'scene.forestName': '林间小路',
+    'scene.forestDesc': '阳光穿过树梢，光影缓缓移动。空气里有泥土和叶子的味道。',
+    'scene.starrySkyName': '星河夜空',
+    'scene.starrySkyDesc': '满天星斗缓缓转动，夜色温柔得像一首低声哼的歌。',
+    'scene.rainyCafeName': '雨天窗边',
+    'scene.rainyCafeDesc': '雨敲玻璃，世界被水声隔在外面。适合一个人安静待着。',
+    'scene.snowyWindowName': '雪落无声',
+    'scene.snowyWindowDesc': '雪花慢慢落下来，世界变得很轻。适合不被打扰的午后。',
+    'scene.campfireName': '篝火夜话',
+    'scene.campfireDesc': '火焰噼啪声，温暖的光在黑暗中跳动。适合夜晚的深度思考。',
+    'scene.cityNightName': '城市夜景',
+    'scene.cityNightDesc': '远处的灯火像星星一样闪烁，城市的节奏在窗外流淌。',
+    'scene.starryTentName': '星空帐篷',
+    'scene.starryTentDesc': '帐篷外是银河，帐篷内是温暖的角落。天地之间只有你。',
+
+    // Scene recommendation hint
+    'scene.recommendHint': '推荐搭配「{name}」白噪音',
+
+    // Sound names
+    'sound.rain': '雨声',
+    'sound.ocean': '海浪',
+    'sound.forest': '森林',
+    'sound.fire': '壁炉',
+    'sound.cafe': '咖啡馆',
+    'sound.wind': '风声',
+    'sound.night': '夏夜',
+    'sound.whitenoise': '白噪音',
+
+    // StudyStats
+    'stats.startFirstFocus': '🎯 开始你的第一次专注吧！',
 
     // Memo confirm
     'memo.confirmClear': '确定要清空所有已完成的任务吗？',
@@ -511,6 +548,43 @@ const translations = {
     // InstallPrompt
     'install.title': 'Install to Desktop',
     'install.desc': 'Use like a native app',
+    'install.button': 'Install',
+
+    // Scene names
+    'scene.mountainLakeName': 'Mountain Lake',
+    'scene.mountainLakeDesc': 'Still water mirrors the snow-capped peaks. Quiet enough to hear your own breath.',
+    'scene.seasideName': 'Seaside Cottage',
+    'scene.seasideDesc': 'Waves gently lap the shore in a rhythm as natural as breathing.',
+    'scene.forestName': 'Forest Path',
+    'scene.forestDesc': 'Sunlight filters through the canopy. The air smells of earth and leaves.',
+    'scene.starrySkyName': 'Starry Sky',
+    'scene.starrySkyDesc': 'Stars turn slowly overhead. The night is soft as a hummed lullaby.',
+    'scene.rainyCafeName': 'Rainy Window',
+    'scene.rainyCafeDesc': 'Rain taps the glass, sealing the world outside. Perfect for quiet solitude.',
+    'scene.snowyWindowName': 'Silent Snow',
+    'scene.snowyWindowDesc': 'Snowflakes drift down, making the world feel light and hushed.',
+    'scene.campfireName': 'Campfire Night',
+    'scene.campfireDesc': 'Crackling flames and warm glow dancing in the dark. For deep nighttime thoughts.',
+    'scene.cityNightName': 'City Lights',
+    'scene.cityNightDesc': 'Distant lights twinkle like stars, the city\'s rhythm flowing outside the window.',
+    'scene.starryTentName': 'Stargazer Tent',
+    'scene.starryTentDesc': 'The Milky Way outside, warmth inside. Just you between heaven and earth.',
+
+    // Scene recommendation hint
+    'scene.recommendHint': 'Try {name} ambient sound',
+
+    // Sound names
+    'sound.rain': 'Rain',
+    'sound.ocean': 'Ocean',
+    'sound.forest': 'Forest',
+    'sound.fire': 'Fireplace',
+    'sound.cafe': 'Cafe',
+    'sound.wind': 'Wind',
+    'sound.night': 'Summer Night',
+    'sound.whitenoise': 'White Noise',
+
+    // StudyStats
+    'stats.startFirstFocus': '🎯 Start your first focus session!',
 
     // Memo confirm
     'memo.confirmClear': 'Clear all completed tasks?',

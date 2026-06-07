@@ -57,7 +57,7 @@ export default function InstallPrompt() {
             onClick={handleInstall}
             className="px-3 py-1.5 rounded-lg bg-white/[0.15] text-white/90 text-[11px] font-medium hover:bg-white/[0.22] transition-all active:scale-95"
           >
-            安装
+            {t('install.button')}
           </button>
           <button
             onClick={handleDismiss}

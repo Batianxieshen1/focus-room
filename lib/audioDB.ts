@@ -61,13 +61,3 @@ export async function deleteCustomSound(id: string): Promise<void> {
     tx.onerror = () => { db.close(); reject(tx.error) }
   })
 }
-
-export async function getCustomSoundCount(): Promise<number> {
-  const db = await openDB()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly')
-    const request = tx.objectStore(STORE_NAME).count()
-    request.onsuccess = () => { db.close(); resolve(request.result) }
-    request.onerror = () => { db.close(); reject(request.error) }
-  })
-}

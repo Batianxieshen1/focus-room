@@ -1,5 +1,7 @@
 'use client'
 
+import { t } from '@/lib/i18n'
+
 export interface Scene {
   id: string
   name: string
@@ -7,17 +9,35 @@ export interface Scene {
   icon: string
 }
 
-export const SCENES: Scene[] = [
-  { id: 'mountain-lake', name: '高山湖泊', description: '水面如镜，远山含雪。安静得只听得见自己的呼吸。', icon: '🏔' },
-  { id: 'seaside', name: '海边小屋', description: '潮水轻拍岸边，节奏像呼吸一样自然。思绪随浪花散开。', icon: '🌊' },
-  { id: 'forest', name: '林间小路', description: '阳光穿过树梢，光影缓缓移动。空气里有泥土和叶子的味道。', icon: '🌲' },
-  { id: 'starry-sky', name: '星河夜空', description: '满天星斗缓缓转动，夜色温柔得像一首低声哼的歌。', icon: '🌌' },
-  { id: 'rainy-cafe', name: '雨天窗边', description: '雨敲玻璃，世界被水声隔在外面。适合一个人安静待着。', icon: '☕' },
-  { id: 'snowy-window', name: '雪落无声', description: '雪花慢慢落下来，世界变得很轻。适合不被打扰的午后。', icon: '❄️' },
-  { id: 'campfire', name: '篝火夜话', description: '火焰噼啪声，温暖的光在黑暗中跳动。适合夜晚的深度思考。', icon: '🔥' },
-  { id: 'city-night', name: '城市夜景', description: '远处的灯火像星星一样闪烁，城市的节奏在窗外流淌。', icon: '🌙' },
-  { id: 'starry-tent', name: '星空帐篷', description: '帐篷外是银河，帐篷内是温暖的角落。天地之间只有你。', icon: '⛺' },
+const SCENE_KEYS: Array<{ id: string; nameKey: string; descKey: string; icon: string }> = [
+  { id: 'mountain-lake', nameKey: 'scene.mountainLakeName', descKey: 'scene.mountainLakeDesc', icon: '🏔' },
+  { id: 'seaside', nameKey: 'scene.seasideName', descKey: 'scene.seasideDesc', icon: '🌊' },
+  { id: 'forest', nameKey: 'scene.forestName', descKey: 'scene.forestDesc', icon: '🌲' },
+  { id: 'starry-sky', nameKey: 'scene.starrySkyName', descKey: 'scene.starrySkyDesc', icon: '🌌' },
+  { id: 'rainy-cafe', nameKey: 'scene.rainyCafeName', descKey: 'scene.rainyCafeDesc', icon: '☕' },
+  { id: 'snowy-window', nameKey: 'scene.snowyWindowName', descKey: 'scene.snowyWindowDesc', icon: '❄️' },
+  { id: 'campfire', nameKey: 'scene.campfireName', descKey: 'scene.campfireDesc', icon: '🔥' },
+  { id: 'city-night', nameKey: 'scene.cityNightName', descKey: 'scene.cityNightDesc', icon: '🌙' },
+  { id: 'starry-tent', nameKey: 'scene.starryTentName', descKey: 'scene.starryTentDesc', icon: '⛺' },
 ]
+
+// Derived from i18n keys -- updated on each render so locale changes are reflected
+export function getScenes(): Scene[] {
+  return SCENE_KEYS.map(s => ({
+    id: s.id,
+    name: t(s.nameKey as any),
+    description: t(s.descKey as any),
+    icon: s.icon,
+  }))
+}
+
+// Backward-compatible constant (lazy-evaluated)
+export const SCENES: Scene[] = SCENE_KEYS.map(s => ({
+  id: s.id,
+  name: s.nameKey.replace('scene.', ''),
+  description: '',
+  icon: s.icon,
+}))
 
 // 每个场景的渐变背景（用于视频加载前的占位）
 export const SCENE_GRADIENTS: Record<string, string> = {
@@ -32,17 +52,17 @@ export const SCENE_GRADIENTS: Record<string, string> = {
   'starry-tent': 'linear-gradient(135deg, #050510 0%, #0a0a1a 40%, #030308 100%)',
 }
 
-// 场景与推荐声音的映射
-export const SCENE_SOUND_MAP: Record<string, { soundId: string; soundName: string }> = {
-  'mountain-lake': { soundId: 'wind', soundName: '风声' },
-  'seaside': { soundId: 'ocean', soundName: '海浪' },
-  'forest': { soundId: 'forest', soundName: '森林' },
-  'starry-sky': { soundId: 'night', soundName: '夏夜' },
-  'rainy-cafe': { soundId: 'rain', soundName: '雨声' },
-  'snowy-window': { soundId: 'whitenoise', soundName: '白噪音' },
-  'campfire': { soundId: 'fire', soundName: '壁炉' },
-  'city-night': { soundId: 'whitenoise', soundName: '白噪音' },
-  'starry-tent': { soundId: 'night', soundName: '夏夜' },
+// 场景与推荐声音的映射 (soundName keys reference i18n sound.* keys)
+export const SCENE_SOUND_MAP: Record<string, { soundId: string; soundNameKey: string }> = {
+  'mountain-lake': { soundId: 'wind', soundNameKey: 'sound.wind' },
+  'seaside': { soundId: 'ocean', soundNameKey: 'sound.ocean' },
+  'forest': { soundId: 'forest', soundNameKey: 'sound.forest' },
+  'starry-sky': { soundId: 'night', soundNameKey: 'sound.night' },
+  'rainy-cafe': { soundId: 'rain', soundNameKey: 'sound.rain' },
+  'snowy-window': { soundId: 'whitenoise', soundNameKey: 'sound.whitenoise' },
+  'campfire': { soundId: 'fire', soundNameKey: 'sound.fire' },
+  'city-night': { soundId: 'whitenoise', soundNameKey: 'sound.whitenoise' },
+  'starry-tent': { soundId: 'night', soundNameKey: 'sound.night' },
 }
 
 interface Props {
@@ -52,12 +72,13 @@ interface Props {
 
 export default function SceneSelector({ currentScene, onSceneChange }: Props) {
   const recommended = SCENE_SOUND_MAP[currentScene]
+  const scenes = getScenes()
 
   return (
     <div className="flex flex-col gap-4">
-      <span className="text-xs text-white/50 tracking-widest uppercase">场景</span>
+      <span className="text-xs text-white/50 tracking-widest uppercase">{t('scene.title')}</span>
       <div className="flex gap-2 flex-wrap">
-        {SCENES.map(scene => (
+        {scenes.map(scene => (
           <button
             key={scene.id}
             onClick={() => onSceneChange(scene)}
@@ -79,7 +100,7 @@ export default function SceneSelector({ currentScene, onSceneChange }: Props) {
       {/* 推荐声音提示 */}
       {recommended && (
         <div className="text-[10px] text-white/30 text-center tracking-wide">
-          💡 推荐搭配「{recommended.soundName}」白噪音
+          {t('scene.recommendHint').replace('{name}', t(recommended.soundNameKey as any))}
         </div>
       )}
     </div>

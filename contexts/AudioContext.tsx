@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect, createContext, useContext, ReactNode } from 'react'
 import { storageGet, storageSet } from '@/lib/storage'
 import { saveCustomSound, loadCustomSounds, deleteCustomSound } from '@/lib/audioDB'
+import { t } from '@/lib/i18n'
 
 export interface Sound {
   id: string
@@ -28,15 +29,15 @@ const AudioContext = createContext<AudioContextValue | null>(null)
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
 
-const SOUND_DEFAULTS: Omit<Sound, 'volume'>[] = [
-  { id: 'rain', name: '雨声', icon: '🌧', isPlaying: false, file: BASE_PATH + '/sounds/rain.mp3' },
-  { id: 'ocean', name: '海浪', icon: '🌊', isPlaying: false, file: BASE_PATH + '/sounds/ocean.mp3' },
-  { id: 'forest', name: '森林', icon: '🌲', isPlaying: false, file: BASE_PATH + '/sounds/forest.mp3' },
-  { id: 'fire', name: '壁炉', icon: '🔥', isPlaying: false, file: BASE_PATH + '/sounds/fire.wav' },
-  { id: 'cafe', name: '咖啡馆', icon: '☕', isPlaying: false, file: BASE_PATH + '/sounds/cafe.mp3' },
-  { id: 'wind', name: '风声', icon: '💨', isPlaying: false, file: BASE_PATH + '/sounds/wind.mp3' },
-  { id: 'night', name: '夏夜', icon: '🦗', isPlaying: false, file: BASE_PATH + '/sounds/night.mp3' },
-  { id: 'whitenoise', name: '白噪音', icon: '📻', isPlaying: false, file: BASE_PATH + '/sounds/whitenoise.wav' },
+const SOUND_DEFAULTS: Array<Omit<Sound, 'volume' | 'name'> & { nameKey: string }> = [
+  { id: 'rain', nameKey: 'sound.rain', icon: '🌧', isPlaying: false, file: BASE_PATH + '/sounds/rain.mp3' },
+  { id: 'ocean', nameKey: 'sound.ocean', icon: '🌊', isPlaying: false, file: BASE_PATH + '/sounds/ocean.mp3' },
+  { id: 'forest', nameKey: 'sound.forest', icon: '🌲', isPlaying: false, file: BASE_PATH + '/sounds/forest.mp3' },
+  { id: 'fire', nameKey: 'sound.fire', icon: '🔥', isPlaying: false, file: BASE_PATH + '/sounds/fire.wav' },
+  { id: 'cafe', nameKey: 'sound.cafe', icon: '☕', isPlaying: false, file: BASE_PATH + '/sounds/cafe.mp3' },
+  { id: 'wind', nameKey: 'sound.wind', icon: '💨', isPlaying: false, file: BASE_PATH + '/sounds/wind.mp3' },
+  { id: 'night', nameKey: 'sound.night', icon: '🦗', isPlaying: false, file: BASE_PATH + '/sounds/night.mp3' },
+  { id: 'whitenoise', nameKey: 'sound.whitenoise', icon: '📻', isPlaying: false, file: BASE_PATH + '/sounds/whitenoise.wav' },
 ]
 
 const MAX_CUSTOM_SIZE = 50 * 1024 * 1024 // 50MB per file
@@ -53,7 +54,11 @@ function saveVolumes(volumes: Record<string, number>) {
 function getBuiltInSounds(): Sound[] {
   const savedVolumes = loadVolumes()
   return SOUND_DEFAULTS.map(s => ({
-    ...s,
+    id: s.id,
+    name: t(s.nameKey as any),
+    icon: s.icon,
+    isPlaying: s.isPlaying,
+    file: s.file,
     volume: savedVolumes[s.id] ?? 50,
   }))
 }

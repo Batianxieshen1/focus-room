@@ -226,7 +226,7 @@ export default function StudyStats({ onClose }: Props) {
           <div className="text-[11px] text-white/50 tracking-wider mb-4 uppercase">{t('stats.last7Days')}</div>
           {history.length === 0 && (
             <div className="text-center py-2 mb-2">
-              <span className="text-[11px] text-white/30">🎯 开始你的第一次专注吧！</span>
+              <span className="text-[11px] text-white/30">{t('stats.startFirstFocus')}</span>
             </div>
           )}
           <div className="flex items-end gap-1.5 h-28">

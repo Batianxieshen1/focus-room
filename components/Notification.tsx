@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
+import { t } from '@/lib/i18n'
 
 interface Props {
   trigger: boolean
@@ -66,7 +67,7 @@ export default function Notification({ trigger }: Props) {
     const w = window as any
     if ('Notification' in w && w.Notification.permission === 'granted') {
       new w.Notification('Focus Room', {
-        body: '⏰ 时间到！该休息一下了',
+        body: t('notify.pomodoroDone'),
         icon: '/icon-192.png',
         silent: true,
       })

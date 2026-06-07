@@ -4,7 +4,7 @@ import { lazy, Suspense, useState, useEffect, useCallback, useRef } from 'react'
 import TopNav from '@/components/TopNav'
 import BottomBar from '@/components/BottomBar'
 import Timer from '@/components/Timer'
-import { Scene, SCENES, SCENE_SOUND_MAP } from '@/components/SceneSelector'
+import { Scene, SCENES, SCENE_SOUND_MAP, getScenes } from '@/components/SceneSelector'
 import { TimerSettings } from '@/hooks/useTimer'
 import { useAudioContext } from '@/contexts/AudioContext'
 import ShortcutToast from '@/components/ShortcutToast'
@@ -124,14 +124,16 @@ export default function FocusView({
   const volume = mainSound?.volume ?? 50
 
   const handlePrevScene = useCallback(() => {
-    const idx = SCENES.findIndex(s => s.id === currentScene.id)
-    const prev = SCENES[(idx - 1 + SCENES.length) % SCENES.length]
+    const scenes = getScenes()
+    const idx = scenes.findIndex(s => s.id === currentScene.id)
+    const prev = scenes[(idx - 1 + scenes.length) % scenes.length]
     onChangeScene(prev)
   }, [currentScene, onChangeScene])
 
   const handleNextScene = useCallback(() => {
-    const idx = SCENES.findIndex(s => s.id === currentScene.id)
-    const next = SCENES[(idx + 1) % SCENES.length]
+    const scenes = getScenes()
+    const idx = scenes.findIndex(s => s.id === currentScene.id)
+    const next = scenes[(idx + 1) % scenes.length]
     onChangeScene(next)
   }, [currentScene, onChangeScene])
 

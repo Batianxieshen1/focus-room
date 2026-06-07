@@ -121,7 +121,7 @@ export default function SoundMixer() {
     { id: 'PLFgquLnL59alCl_2TQvOiD5Vgm1h6G8SQ', name: 'Lofi Hip Hop', icon: '🎵' },
     { id: 'PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf', name: 'Classical', icon: '🎻' },
     { id: 'PL5f6dC0dEfUQh8DwGfxp_Y2dNz5aCgQk', name: 'Jazz & Blues', icon: '🎷' },
-    { id: 'PLbOY8hVF本质qGOy6eEMg3pJn1C1sVHxN', name: 'Nature Sounds', icon: '🌿' },
+    { id: 'PL0E75640845540033', name: 'Nature Sounds', icon: '🌿' },
   ]
 
   const playYouTube = (query?: string) => {
@@ -140,7 +140,7 @@ export default function SoundMixer() {
   const customSounds = sounds.filter(s => s.isCustom)
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 relative">
       {/* ===== Section 1: Built-in Sounds ===== */}
       <div className="flex items-center justify-between">
         <span className="text-[10px] text-white/40 tracking-widest uppercase">{t('sound.title')}</span>
@@ -480,7 +480,7 @@ export default function SoundMixer() {
 
       {/* ===== Notification toast ===== */}
       {notification && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white/90 text-xs z-50 transition-opacity duration-300">
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white/90 text-xs z-50 transition-opacity duration-300 whitespace-nowrap">
           {notification}
         </div>
       )}

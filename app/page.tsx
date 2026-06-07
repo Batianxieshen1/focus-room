@@ -6,7 +6,7 @@ import Landing from '@/components/Landing'
 import ScenePicker from '@/components/ScenePicker'
 import VideoBackground from '@/components/VideoBackground'
 import FocusView from '@/components/FocusView'
-import { Scene, SCENES } from '@/components/SceneSelector'
+import { Scene, SCENES, getScenes } from '@/components/SceneSelector'
 import { AudioProvider } from '@/contexts/AudioContext'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { initLocale } from '@/lib/i18n'
@@ -44,7 +44,7 @@ function AppInner() {
     setOnboardingStep(null)
   }, [])
 
-  const currentScene = SCENES.find(s => s.id === sceneId) || SCENES[0]
+  const currentScene = getScenes().find(s => s.id === sceneId) || getScenes()[0]
 
   useEffect(() => { initLocale() }, [])
 
