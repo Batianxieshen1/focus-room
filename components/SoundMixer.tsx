@@ -56,16 +56,21 @@ export default function SoundMixer() {
   const [playlistUrl, setPlaylistUrl] = useState('')
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null)
 
-  // Preset study music playlists
+  // Preset playlists — verified real content
   const PRESET_PLAYLISTS = [
-    { id: '2829883282', name: '学习工作', icon: '📚' },
-    { id: '1972031547', name: '专注白噪音', icon: '🌧' },
-    { id: '2482252552', name: '轻音乐', icon: '🎵' },
-    { id: '3778678', name: '古典钢琴', icon: '🎹' },
+    { id: '459034281', name: 'Deep Focus Study', icon: '🧠', desc: '358首深度专注音乐' },
+    { id: '7722421306', name: 'Ambient Lofi', icon: '🎧', desc: '134首氛围低保真' },
+    { id: '2556149301', name: '学习专注', icon: '📚', desc: '90首学习专注音乐' },
+    { id: '2109356424', name: 'Rain & Nature', icon: '🌧', desc: '49首雨声与自然音' },
   ]
 
   const extractPlaylistId = (url: string): string | null => {
     // Match playlist ID from various NetEase URL formats
+    // e.g. https://music.163.com/#/playlist?id=123456
+    // or https://music.163.com/playlist?id=123456
+    // or just a number
+    const numOnly = url.trim().match(/^(\d{5,})$/)
+    if (numOnly) return numOnly[1]
     const match = url.match(/playlist[?&]id=(\d+)/) || url.match(/\/playlist\/(\d+)/)
     return match ? match[1] : null
   }
