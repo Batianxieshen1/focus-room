@@ -361,28 +361,45 @@ export default function BottomBar({
       `}} />
     </div>
 
-    {/* Persistent NetEase player — rendered outside bar, always mounted when active */}
+    {/* Persistent NetEase player — always mounted when a playlist is active */}
     {activePlaylistId && (
-      <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 w-[360px] sm:w-[400px]">
-        {/* Close button */}
-        <div className="flex justify-end mb-1">
-          <button
-            onClick={() => setActivePlaylistId(null)}
-            className="px-2 py-1 rounded-md bg-black/60 text-white/60 text-[10px] hover:text-white/90 transition-all"
+      <>
+        {/* Full player — shown when sound panel is open */}
+        {showSoundPanel && (
+          <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 w-[360px] sm:w-[400px] animate-fade-in">
+            <div className="flex justify-end mb-1">
+              <button
+                onClick={() => setActivePlaylistId(null)}
+                className="px-2 py-1 rounded-md bg-black/60 text-white/60 text-[10px] hover:text-white/90 transition-all"
+              >
+                关闭播放器 ✕
+              </button>
+            </div>
+            <div className="rounded-xl overflow-hidden border border-white/[0.08] shadow-lg shadow-black/30">
+              <iframe
+                src={`https://music.163.com/outchain/player?type=0&id=${activePlaylistId}&auto=0&height=430`}
+                className="w-full bg-black"
+                style={{ height: '430px' }}
+                frameBorder="no"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Mini player — shown when sound panel is closed */}
+        {!showSoundPanel && (
+          <div
+            className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 animate-fade-in cursor-pointer"
+            onClick={() => setShowSoundPanel(true)}
           >
-            关闭播放器 ✕
-          </button>
-        </div>
-        {/* Iframe — never unmounts while BottomBar is mounted */}
-        <div className="rounded-xl overflow-hidden border border-white/[0.08] shadow-lg shadow-black/30">
-          <iframe
-            src={`https://music.163.com/outchain/player?type=0&id=${activePlaylistId}&auto=0&height=80`}
-            className="w-full bg-black"
-            style={{ height: '80px' }}
-            frameBorder="no"
-          />
-        </div>
-      </div>
+            <div className="glass-strong rounded-full px-4 py-2 flex items-center gap-3 shadow-lg shadow-black/20 border border-white/[0.08]">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[11px] text-white/60">🎵 网易云音乐播放中</span>
+              <span className="text-[10px] text-white/30">点击展开</span>
+            </div>
+          </div>
+        )}
+      </>
     )}
   </>
   )
