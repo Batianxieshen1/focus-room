@@ -32,7 +32,12 @@ async function fetchWithProgress(
   return new Blob(chunks as BlobPart[])
 }
 
-export default function SoundMixer() {
+interface SoundMixerProps {
+  activePlaylistId?: string | null
+  onPlaylistChange?: (id: string | null) => void
+}
+
+export default function SoundMixer({ activePlaylistId, onPlaylistChange }: SoundMixerProps) {
   const {
     sounds,
     toggleSound,
@@ -52,10 +57,8 @@ export default function SoundMixer() {
   // Tab state
   const [activeTab, setActiveTab] = useState<'link' | 'netease'>('netease')
 
-  // NetEase Cloud Music — embedded player
+  // NetEase Cloud Music
   const [playlistUrl, setPlaylistUrl] = useState('')
-  const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null)
-  const [embedError, setEmbedError] = useState(false)
 
   // Preset playlists — verified real content
   const PRESET_PLAYLISTS = [
@@ -75,8 +78,7 @@ export default function SoundMixer() {
   const handlePlaylistUrl = () => {
     const id = extractPlaylistId(playlistUrl.trim())
     if (id) {
-      setActivePlaylistId(id)
-      setEmbedError(false)
+      onPlaylistChange?.(id)
       setPlaylistUrl('')
     }
   }
@@ -357,7 +359,7 @@ export default function SoundMixer() {
               {PRESET_PLAYLISTS.map(pl => (
                 <button
                   key={pl.id}
-                  onClick={() => { setActivePlaylistId(pl.id); setEmbedError(false) }}
+                  onClick={() => onPlaylistChange?.(pl.id)}
                   className={`flex flex-col items-center gap-1 px-3 py-2.5 rounded-lg transition-all duration-200 active:scale-95 text-center ${
                     activePlaylistId === pl.id
                       ? 'bg-white/[0.12] text-white/80'
@@ -391,33 +393,6 @@ export default function SoundMixer() {
                 {t('sound.neteaseSearchBtn')}
               </button>
             </div>
-
-            {/* Embedded player */}
-            {activePlaylistId && !embedError && (
-              <div className="rounded-xl overflow-hidden border border-white/[0.06]">
-                <iframe
-                  src={`https://music.163.com/outchain/player?type=0&id=${activePlaylistId}&auto=0&height=430`}
-                  className="w-full bg-black"
-                  style={{ height: '430px' }}
-                  frameBorder="no"
-                  sandbox="allow-scripts allow-same-origin allow-popups"
-                  onError={() => setEmbedError(true)}
-                  onLoad={() => console.log('NetEase iframe loaded')}
-                />
-              </div>
-            )}
-
-            {embedError && activePlaylistId && (
-              <div className="text-center py-4">
-                <div className="text-[10px] text-white/30 mb-2">播放器加载失败</div>
-                <button
-                  onClick={() => window.open(`https://music.163.com/#/playlist?id=${activePlaylistId}`, '_blank')}
-                  className="px-4 py-2 rounded-lg bg-white/[0.08] text-white/70 text-xs hover:bg-white/[0.12] transition-all"
-                >
-                  在网易云中打开 ↗
-                </button>
-              </div>
-            )}
 
             {!activePlaylistId && (
               <div className="text-center text-white/20 text-[10px] py-4">

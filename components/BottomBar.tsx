@@ -44,6 +44,8 @@ export default function BottomBar({
   const sleepMenuRef = useRef<HTMLDivElement>(null)
   const [showSoundPanel, setShowSoundPanel] = useState(false)
   const soundPanelRef = useRef<HTMLDivElement>(null)
+  // NetEase playlist — lifted state, iframe always mounted
+  const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null)
 
   // Close sleep menu on outside click
   useEffect(() => {
@@ -75,6 +77,7 @@ export default function BottomBar({
   }
 
   return (
+    <>
     <div className="fixed bottom-3 left-1/2 z-30 -translate-x-1/2 sm:bottom-6">
       <div className="flex items-center gap-2 rounded-full glass-strong px-3 py-2 shadow-lg sm:gap-3 sm:px-6 sm:py-3">
         {/* Prev scene arrow */}
@@ -226,7 +229,7 @@ export default function BottomBar({
           {/* Sound mixer popup */}
           {showSoundPanel && (
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-96 max-h-[70vh] overflow-y-auto glass-strong rounded-2xl p-4 animate-fade-in shadow-lg z-50 scrollbar-thin">
-              <SoundMixer />
+              <SoundMixer activePlaylistId={activePlaylistId} onPlaylistChange={setActivePlaylistId} />
             </div>
           )}
         </div>
@@ -357,5 +360,30 @@ export default function BottomBar({
         }
       `}} />
     </div>
+
+    {/* Persistent NetEase player — rendered outside bar, always mounted when active */}
+    {activePlaylistId && (
+      <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 w-[360px] sm:w-[400px]">
+        {/* Close button */}
+        <div className="flex justify-end mb-1">
+          <button
+            onClick={() => setActivePlaylistId(null)}
+            className="px-2 py-1 rounded-md bg-black/60 text-white/60 text-[10px] hover:text-white/90 transition-all"
+          >
+            关闭播放器 ✕
+          </button>
+        </div>
+        {/* Iframe — never unmounts while BottomBar is mounted */}
+        <div className="rounded-xl overflow-hidden border border-white/[0.08] shadow-lg shadow-black/30">
+          <iframe
+            src={`https://music.163.com/outchain/player?type=0&id=${activePlaylistId}&auto=0&height=80`}
+            className="w-full bg-black"
+            style={{ height: '80px' }}
+            frameBorder="no"
+          />
+        </div>
+      </div>
+    )}
+  </>
   )
 }
