@@ -369,7 +369,7 @@ export default function BottomBar({
           <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 w-[360px] sm:w-[400px] animate-fade-in">
             <div className="flex justify-end mb-1">
               <button
-                onClick={() => setActivePlaylistId(null)}
+                onClick={(e) => { e.stopPropagation(); setActivePlaylistId(null) }}
                 className="px-2 py-1 rounded-md bg-black/60 text-white/60 text-[10px] hover:text-white/90 transition-all"
               >
                 关闭播放器 ✕
