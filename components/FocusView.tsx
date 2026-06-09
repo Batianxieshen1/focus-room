@@ -5,7 +5,7 @@ import TopNav from '@/components/TopNav'
 import BottomBar from '@/components/BottomBar'
 import Timer from '@/components/Timer'
 import { Scene, SCENES, SCENE_SOUND_MAP, getScenes } from '@/components/SceneSelector'
-import { TimerSettings } from '@/hooks/useTimer'
+import { TimerSettings, getStudyHistory } from '@/hooks/useTimer'
 import { useAudioContext } from '@/contexts/AudioContext'
 import ShortcutToast from '@/components/ShortcutToast'
 import InstallPrompt from '@/components/InstallPrompt'
@@ -47,6 +47,40 @@ export default function FocusView({
   const soundsRef = useRef(sounds)
   useEffect(() => { studySecondsRef.current = studySeconds }, [studySeconds])
   useEffect(() => { soundsRef.current = sounds }, [sounds])
+
+  // Auto-start timer if setting is enabled (only once on mount)
+  const autoStartDoneRef = useRef(false)
+  useEffect(() => {
+    if (autoStartDoneRef.current) return
+    autoStartDoneRef.current = true
+    try {
+      const saved = localStorage.getItem('focus-room-settings')
+      if (saved) {
+        const settings = JSON.parse(saved)
+        if (settings.autoStart) {
+          // Delay slightly so timerActionsRef is ready
+          const checkAndStart = () => {
+            if (timerActionsRef.current) {
+              timerActionsRef.current.toggle()
+            } else {
+              setTimeout(checkAndStart, 200)
+            }
+          }
+          setTimeout(checkAndStart, 500)
+        }
+      }
+    } catch {}
+  }, [])
+
+  // Sitting reminder: show after 45 minutes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setToastMsg(t('focus.sittingReminder'))
+      setShowToast(true)
+      setTimeout(() => setShowToast(false), 5000)
+    }, 45 * 60 * 1000)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Timer actions ref — captured from Timer's onActionsReady
   const timerActionsRef = useRef<{
@@ -392,6 +426,36 @@ export default function FocusView({
             onPomodoroComplete={handlePomodoroComplete}
             onStudySecondsChange={handleStudySecondsChange}
           />
+          {/* Study info strip */}
+          <div className="flex items-center gap-3 mt-2 text-[10px] text-white/30">
+            <span>
+              {t('focus.todayStudy')}:{' '}
+              {(() => {
+                const h = Math.floor(studySeconds / 3600)
+                const m = Math.floor((studySeconds % 3600) / 60)
+                const s = studySeconds % 60
+                if (h > 0) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+              })()}
+            </span>
+            <span>
+              {t('focus.weekStudy')}:{' '}
+              {(() => {
+                const history = getStudyHistory()
+                const now = new Date()
+                const dayOfWeek = now.getDay()
+                const startOfWeek = new Date(now)
+                startOfWeek.setDate(now.getDate() - dayOfWeek)
+                startOfWeek.setHours(0, 0, 0, 0)
+                const weekDays = new Set(
+                  history
+                    .filter(h => new Date(h.date) >= startOfWeek && h.studySeconds > 0)
+                    .map(h => h.date)
+                )
+                return `${weekDays.size}${t('focus.activeDays')}`
+              })()}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -402,6 +466,7 @@ export default function FocusView({
           sceneDescription={currentScene.description}
           isMuted={!anyPlaying}
           volume={volume}
+          anyPlaying={anyPlaying}
           onPrevScene={handlePrevScene}
           onNextScene={handleNextScene}
           onToggleMute={handleToggleMute}

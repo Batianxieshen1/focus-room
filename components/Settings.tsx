@@ -10,6 +10,8 @@ interface Settings {
   breakMinutes: number
   longBreakMinutes: number
   longBreakInterval: number
+  soundEnabled?: boolean
+  autoStart?: boolean
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -17,6 +19,8 @@ const DEFAULT_SETTINGS: Settings = {
   breakMinutes: 5,
   longBreakMinutes: 15,
   longBreakInterval: 4,
+  soundEnabled: true,
+  autoStart: false,
 }
 
 interface Props {
@@ -83,6 +87,42 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
           <RangeSlider label={t('settings.shortBreak')} value={settings.breakMinutes} min={1} max={15} unit="m" onChange={v => updateSetting('breakMinutes', v)} />
           <RangeSlider label={t('settings.longBreak')} value={settings.longBreakMinutes} min={10} max={30} step={5} unit="m" onChange={v => updateSetting('longBreakMinutes', v)} />
           <RangeSlider label={t('settings.longBreakInterval')} value={settings.longBreakInterval} min={2} max={6} onChange={v => updateSetting('longBreakInterval', v)} />
+
+          {/* Sound enabled toggle */}
+          <div className="flex items-center justify-between">
+            <label className="text-sm text-white/70">{t('settings.soundEnabled')}</label>
+            <button
+              onClick={() => updateSetting('soundEnabled', settings.soundEnabled === false ? true : false)}
+              className={`relative w-10 h-5 rounded-full transition-all duration-200 ${
+                settings.soundEnabled !== false ? 'bg-white/20' : 'bg-white/[0.06]'
+              }`}
+            >
+              <div
+                className={`absolute top-0.5 w-4 h-4 rounded-full transition-all duration-200 ${
+                  settings.soundEnabled !== false
+                    ? 'left-5.5 bg-white/90'
+                    : 'left-0.5 bg-white/40'
+                }`}
+                style={{ left: settings.soundEnabled !== false ? '22px' : '2px' }}
+              />
+            </button>
+          </div>
+
+          {/* Auto-start toggle */}
+          <div className="flex items-center justify-between">
+            <label className="text-sm text-white/70">{t('settings.autoStart')}</label>
+            <button
+              onClick={() => updateSetting('autoStart', settings.autoStart === true ? false : true)}
+              className={`relative w-10 h-5 rounded-full transition-all duration-200 ${
+                settings.autoStart ? 'bg-white/20' : 'bg-white/[0.06]'
+              }`}
+            >
+              <div
+                className={`absolute top-0.5 w-4 h-4 rounded-full transition-all duration-200`}
+                style={{ left: settings.autoStart ? '22px' : '2px', backgroundColor: settings.autoStart ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)' }}
+              />
+            </button>
+          </div>
 
           {/* Language toggle */}
           <div>

@@ -25,7 +25,13 @@ export default function Notification({ trigger }: Props) {
 
   useEffect(() => {
     if (trigger && !prevTrigger.current) {
-      playNotification()
+      const soundEnabled = (() => {
+        try {
+          const saved = localStorage.getItem('focus-room-settings')
+          return saved ? JSON.parse(saved).soundEnabled !== false : true
+        } catch { return true }
+      })()
+      if (soundEnabled) playNotification()
       sendBrowserNotification()
     }
     prevTrigger.current = trigger

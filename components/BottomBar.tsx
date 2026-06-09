@@ -10,6 +10,7 @@ interface Props {
   sceneDescription: string
   isMuted: boolean
   volume: number
+  anyPlaying?: boolean
   onPrevScene: () => void
   onNextScene: () => void
   onToggleMute: () => void
@@ -31,6 +32,7 @@ export default function BottomBar({
   sceneDescription,
   isMuted,
   volume,
+  anyPlaying = false,
   onPrevScene,
   onNextScene,
   onToggleMute,
@@ -80,6 +82,7 @@ export default function BottomBar({
     <>
     <div className="fixed bottom-3 left-1/2 z-30 -translate-x-1/2 sm:bottom-6">
       <div className="flex items-center gap-2 rounded-full glass-strong px-3 py-2 shadow-lg sm:gap-3 sm:px-6 sm:py-3">
+        {/* ===== LEFT GROUP: Scene navigation ===== */}
         {/* Prev scene arrow */}
         <button
           onClick={onPrevScene}
@@ -109,9 +112,6 @@ export default function BottomBar({
           {sceneName}
         </span>
 
-        {/* Separator between scene info and controls */}
-        <div className="w-px h-4 bg-white/10 hidden sm:block" />
-
         {/* Next scene arrow */}
         <button
           onClick={onNextScene}
@@ -121,72 +121,10 @@ export default function BottomBar({
           ›
         </button>
 
-        {/* Divider */}
-        <div className="mx-0.5 h-6 w-px bg-white/15 sm:mx-1" />
+        {/* ===== Prominent separator between groups ===== */}
+        <div className="mx-1 h-8 w-px bg-white/25 sm:mx-2 sm:h-10 sm:w-[1.5px]" />
 
-        {/* Sound section */}
-        <div className="hidden flex-col items-center gap-0 sm:flex">
-          <span className="text-[10px] leading-tight text-white/40">{t('bar.sound')}</span>
-          <div className="flex items-center gap-2">
-            {/* Mute toggle */}
-            <button
-              onClick={onToggleMute}
-              className="flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 active:scale-95"
-              aria-label={isMuted ? t('bar.unmute') : t('bar.mute')}
-            >
-              {isMuted ? (
-                /* Muted speaker */
-                <svg
-                  className="h-4 w-4 text-white/60"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" opacity="0.2" />
-                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
-              ) : (
-                /* Volume on speaker */
-                <svg
-                  className="h-4 w-4 text-white/80"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" opacity="0.2" />
-                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                </svg>
-              )}
-            </button>
-
-            {/* Volume slider */}
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={isMuted ? 0 : volume}
-              onChange={(e) => onVolumeChange(Number(e.target.value))}
-              className="volume-slider w-16 cursor-pointer accent-white/60 sm:w-20"
-              style={{
-                background: `linear-gradient(to right, rgba(255,255,255,0.6) ${isMuted ? 0 : volume}%, rgba(255,255,255,0.1) ${isMuted ? 0 : volume}%)`,
-                height: '3px',
-                borderRadius: '9999px',
-                outline: 'none',
-                WebkitAppearance: 'none',
-              }}
-            />
-          </div>
-        </div>
-
+        {/* ===== RIGHT GROUP: Controls ===== */}
         {/* Mobile mute button */}
         <button
           onClick={onToggleMute}
@@ -213,12 +151,15 @@ export default function BottomBar({
         <div className="relative" ref={soundPanelRef}>
           <button
             onClick={() => { setShowSoundPanel(prev => !prev); setShowSleepMenu(false) }}
-            className={`flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 active:scale-95 ${
+            className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:bg-white/15 active:scale-95 ${
               showSoundPanel ? 'bg-white/15 text-white/90' : 'text-white/50'
             }`}
             aria-label={t('bar.soundMixer')}
             title={t('bar.soundMixer')}
           >
+            {anyPlaying && !showSoundPanel && (
+              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400" />
+            )}
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 18V5l12-2v13" />
               <circle cx="6" cy="18" r="3" />
@@ -233,9 +174,6 @@ export default function BottomBar({
             </div>
           )}
         </div>
-
-        {/* Divider */}
-        <div className="mx-0.5 h-6 w-px bg-white/15 sm:mx-1" />
 
         {/* Sleep timer button */}
         <div className="relative" ref={sleepMenuRef}>
@@ -291,9 +229,6 @@ export default function BottomBar({
           )}
         </div>
 
-        {/* Divider */}
-        <div className="mx-0.5 h-6 w-px bg-white/15 sm:mx-1" />
-
         {/* Settings button */}
         <button
           onClick={onOpenSettings}
@@ -335,9 +270,6 @@ export default function BottomBar({
             <line x1="3" y1="21" x2="10" y2="14" />
           </svg>
         </button>
-
-        {/* Divider */}
-        <div className="hidden h-6 w-px bg-white/15 sm:mx-1 sm:block" />
 
         {/* Keyboard shortcuts hint - hidden on mobile */}
         <div className="hidden sm:block">

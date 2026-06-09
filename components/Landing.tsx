@@ -1,13 +1,23 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { t } from '@/lib/i18n';
 
 interface LandingProps {
   onStart: () => void;
+  onResume?: () => void;
 }
 
-export default function Landing({ onStart }: LandingProps) {
+export default function Landing({ onStart, onResume }: LandingProps) {
+  const [hasLastScene, setHasLastScene] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('focus-room-last-scene');
+      if (saved) setHasLastScene(true);
+    } catch {}
+  }, []);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
@@ -120,6 +130,24 @@ export default function Landing({ onStart }: LandingProps) {
               </span>
             </button>
           </div>
+
+          {/* Resume last session button */}
+          {hasLastScene && onResume && (
+            <div style={{ animation: 'fadeSlideUp 0.8s ease-out 0.85s both' }} className="mt-3">
+              <button
+                onClick={onResume}
+                className="group relative w-full rounded-full px-10 py-3 text-[13px] font-light tracking-wide text-white/50 transition-all duration-200 ease-out hover:scale-[1.02] hover:text-white/70 hover:bg-white/[0.06] active:scale-[0.98] sm:w-auto"
+                style={{
+                  border: '1px solid rgba(255,255,255,0.06)',
+                }}
+              >
+                {t('landing.resume')}
+                <span className="ml-2 inline-block transition-transform duration-200 group-hover:translate-x-1">
+                  →
+                </span>
+              </button>
+            </div>
+          )}
 
           {/* Enter hint */}
           <p

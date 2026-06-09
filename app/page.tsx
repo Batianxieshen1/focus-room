@@ -88,6 +88,9 @@ function AppInner() {
   }, [step])
 
   const handleLandingStart = useCallback(() => setStepWithTransition('picker'), [setStepWithTransition])
+  const handleResume = useCallback(() => {
+    setStepWithTransition('focus')
+  }, [setStepWithTransition])
   const handlePickerBack = useCallback(() => setStepWithTransition('landing'), [setStepWithTransition])
   const handlePickerEnter = useCallback((scene: Scene) => {
     handleChangeScene(scene)
@@ -108,7 +111,7 @@ function AppInner() {
         style={{ transition: 'opacity 0.25s ease-in-out', opacity: pageTransitioning ? 0 : 1 }}
       >
         {displayedStep === 'landing' && (
-          <Landing onStart={handleLandingStart} />
+          <Landing onStart={handleLandingStart} onResume={handleResume} />
         )}
 
         {displayedStep === 'picker' && (
@@ -149,22 +152,22 @@ function AppInner() {
             </div>
 
             {/* Step content */}
-            <div className="mb-2 text-4xl">
-              {onboardingStep === 0 ? '🎬' : onboardingStep === 1 ? '🎵' : '⏱'}
+            <div style={{ fontSize: '2rem' }} className="mb-3">
+              {onboardingStep === 0 ? '🌄' : onboardingStep === 1 ? '🎵' : '⏱️'}
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">
+            <h3 className="text-lg font-bold text-white mb-2">
               {onboardingStep === 0
-                ? t('onboard.step1')
+                ? t('onboard.step1Title')
                 : onboardingStep === 1
-                ? t('onboard.step2')
-                : t('onboard.step3')}
+                ? t('onboard.step2Title')
+                : t('onboard.step3Title')}
             </h3>
             <p className="text-sm text-white/50 mb-8">
               {onboardingStep === 0
-                ? t('onboard.step1desc')
+                ? t('onboard.step1Desc')
                 : onboardingStep === 1
-                ? t('onboard.step2desc')
-                : t('onboard.step3desc')}
+                ? t('onboard.step2Desc')
+                : t('onboard.step3Desc')}
             </p>
 
             {/* Action button */}

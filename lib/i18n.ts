@@ -114,6 +114,9 @@ const translations = {
     // FocusView
     'focus.step03': 'STEP 03 · POMODORO',
     'focus.clearHint': '双击屏幕或按 Esc 退出清屏',
+    'focus.todayStudy': '今日学习',
+    'focus.weekStudy': '本周学习',
+    'focus.activeDays': '天',
 
     // Timer
     'timer.pomodoro': '番茄钟',
@@ -208,6 +211,12 @@ const translations = {
     'onboard.step2desc': '雨声、海浪、森林...找到属于你的声音',
     'onboard.step3': '开始你的专注时间',
     'onboard.step3desc': '番茄钟、正计时或倒计时，自由选择',
+    'onboard.step1Title': '选一扇窗',
+    'onboard.step1Desc': '点击底部栏的左右箭头切换场景',
+    'onboard.step2Title': '放一首歌',
+    'onboard.step2Desc': '点击底部 🎵 按钮打开白噪音面板',
+    'onboard.step3Title': '开始专注',
+    'onboard.step3Desc': '设置时间并开始',
     'onboard.next': '下一步',
     'onboard.start': '开始吧',
 
@@ -280,6 +289,18 @@ const translations = {
 
     // StudyStats
     'stats.startFirstFocus': '🎯 开始你的第一次专注吧！',
+    'stats.streak': '连续学习',
+    'stats.streakUnit': '天',
+
+    // Settings - new
+    'settings.soundEnabled': '番茄钟完成音效',
+    'settings.autoStart': '选场景后自动开始计时',
+
+    // Landing - resume
+    'landing.resume': '继续上次',
+
+    // Focus - sitting reminder
+    'focus.sittingReminder': '站起来活动一下吧 🧘',
 
     // Memo confirm
     'memo.confirmClear': '确定要清空所有已完成的任务吗？',
@@ -407,6 +428,9 @@ const translations = {
     // FocusView
     'focus.step03': 'STEP 03 · POMODORO',
     'focus.clearHint': 'Double-click or press Esc to exit clear screen',
+    'focus.todayStudy': 'Today',
+    'focus.weekStudy': 'This week',
+    'focus.activeDays': 'days',
 
     // Timer
     'timer.pomodoro': 'Pomodoro',
@@ -501,6 +525,12 @@ const translations = {
     'onboard.step2desc': 'Rain, ocean waves, forest... find your sound',
     'onboard.step3': 'Start your focus time',
     'onboard.step3desc': 'Pomodoro, stopwatch, or countdown, your choice',
+    'onboard.step1Title': 'Choose a Scene',
+    'onboard.step1Desc': 'Use the arrows at the bottom to switch scenes',
+    'onboard.step2Title': 'Play a Sound',
+    'onboard.step2Desc': 'Tap the 🎵 button to open the sound mixer',
+    'onboard.step3Title': 'Start Focusing',
+    'onboard.step3Desc': 'Set a timer and begin',
     'onboard.next': 'Next',
     'onboard.start': 'Let\'s go',
 
@@ -573,6 +603,18 @@ const translations = {
 
     // StudyStats
     'stats.startFirstFocus': '🎯 Start your first focus session!',
+    'stats.streak': 'Study Streak',
+    'stats.streakUnit': 'days',
+
+    // Settings - new
+    'settings.soundEnabled': 'Pomodoro completion sound',
+    'settings.autoStart': 'Auto-start timer after scene selection',
+
+    // Landing - resume
+    'landing.resume': 'Resume last session',
+
+    // Focus - sitting reminder
+    'focus.sittingReminder': 'Take a break and stretch 🧘',
 
     // Memo confirm
     'memo.confirmClear': 'Clear all completed tasks?',

@@ -52,6 +52,23 @@ export default function StudyStats({ onClose }: Props) {
     return sum + (session?.pomodoros || 0)
   }, 0)
 
+  // Study streak calculation
+  const streak = (() => {
+    let count = 0
+    const d = new Date()
+    for (let i = 0; i < 365; i++) {
+      const dateStr = getLocalDate(d)
+      const session = history.find(h => h.date === dateStr)
+      if (session && session.studySeconds > 0) {
+        count++
+        d.setDate(d.getDate() - 1)
+      } else {
+        break
+      }
+    }
+    return count
+  })()
+
   const weekDays = t('calendar.weekdays').split(',')
 
   // Weekly trend: last 4 weeks
@@ -210,7 +227,7 @@ export default function StudyStats({ onClose }: Props) {
         <h2 className="text-lg font-medium text-white mb-6">{t('stats.title')}</h2>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
+        <div className="grid grid-cols-3 gap-3 mb-8">
           <div className="bg-white/[0.06] rounded-2xl p-4">
             <div className="text-2xl font-light text-white tracking-tight">{formatDuration(weekTotal)}</div>
             <div className="text-[11px] text-white/50 mt-1 tracking-wider">{t('stats.weekStudy')}</div>
@@ -218,6 +235,10 @@ export default function StudyStats({ onClose }: Props) {
           <div className="bg-white/[0.06] rounded-2xl p-4">
             <div className="text-2xl font-light text-amber-300 tracking-tight">{weekPomodoros}</div>
             <div className="text-[11px] text-white/50 mt-1 tracking-wider">{t('stats.completedPomodoros')}</div>
+          </div>
+          <div className="bg-white/[0.06] rounded-2xl p-4">
+            <div className="text-2xl font-light text-emerald-300 tracking-tight">{streak}<span className="text-sm text-white/40 ml-0.5">{t('stats.streakUnit')}</span></div>
+            <div className="text-[11px] text-white/50 mt-1 tracking-wider">{t('stats.streak')}</div>
           </div>
         </div>
 
