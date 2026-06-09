@@ -353,6 +353,20 @@ export default function SoundMixer({ activePlaylistId, onPlaylistChange }: Sound
         {/* Tab: NetEase Cloud Music */}
         {activeTab === 'netease' && (
           <div className="flex flex-col gap-3">
+            {/* Currently playing indicator */}
+            {activePlaylistId && (
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+                <span className="text-[11px] text-emerald-300/80 flex-1">播放中</span>
+                <button
+                  onClick={() => onPlaylistChange?.(null)}
+                  className="text-[10px] text-white/40 hover:text-white/70 transition-colors px-2 py-0.5 rounded"
+                >
+                  返回白噪音 ↑
+                </button>
+              </div>
+            )}
+
             {/* Preset playlists */}
             <div className="text-[10px] text-white/30 tracking-wider uppercase">{t('sound.neteaseHint')}</div>
             <div className="grid grid-cols-2 gap-1.5">
