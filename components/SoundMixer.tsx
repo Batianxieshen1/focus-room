@@ -355,12 +355,17 @@ export default function SoundMixer({ activePlaylistId, onPlaylistChange }: Sound
           <div className="flex flex-col gap-3">
             {/* Currently playing indicator */}
             {activePlaylistId && (
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
-                <span className="text-[11px] text-emerald-300/80 flex-1">播放中</span>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/15 border border-emerald-400/30">
+                <div className="flex items-center gap-2.5">
+                  <div className="relative">
+                    <div className="w-3 h-3 rounded-full bg-emerald-400" />
+                    <div className="absolute inset-0 w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
+                  </div>
+                  <span className="text-xs text-emerald-300 font-medium">🎵 正在播放歌单</span>
+                </div>
                 <button
                   onClick={() => onPlaylistChange?.(null)}
-                  className="text-[10px] text-white/40 hover:text-white/70 transition-colors px-2 py-0.5 rounded"
+                  className="px-3 py-1.5 rounded-lg bg-white/[0.1] text-white/70 text-[11px] font-medium hover:bg-white/[0.18] hover:text-white transition-all duration-200 active:scale-95"
                 >
                   返回白噪音 ↑
                 </button>
