@@ -38,6 +38,8 @@ export default function FocusView({
   const [isHidden, setIsHidden] = useState(false)
   const [showHint, setShowHint] = useState(false)
   const [celebrating, setCelebrating] = useState(false)
+  const [toastMsg, setToastMsg] = useState('')
+  const [showToast, setShowToast] = useState(false)
   const [studySeconds, setStudySeconds] = useState(0)
   const studySecondsRef = useRef(0)
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -128,6 +130,9 @@ export default function FocusView({
     const idx = scenes.findIndex(s => s.id === currentScene.id)
     const prev = scenes[(idx - 1 + scenes.length) % scenes.length]
     onChangeScene(prev)
+    setToastMsg(`${prev.icon} ${prev.name}`)
+    setShowToast(true)
+    setTimeout(() => setShowToast(false), 2000)
   }, [currentScene, onChangeScene])
 
   const handleNextScene = useCallback(() => {
@@ -135,6 +140,9 @@ export default function FocusView({
     const idx = scenes.findIndex(s => s.id === currentScene.id)
     const next = scenes[(idx + 1) % scenes.length]
     onChangeScene(next)
+    setToastMsg(`${next.icon} ${next.name}`)
+    setShowToast(true)
+    setTimeout(() => setShowToast(false), 2000)
   }, [currentScene, onChangeScene])
 
   const handleToggleMute = useCallback(() => {
@@ -476,6 +484,15 @@ export default function FocusView({
                 )}
               </span>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Scene switch toast */}
+      {showToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+          <div className="glass-strong rounded-xl px-5 py-2.5 text-xs text-white/70 tracking-wide shadow-lg">
+            {toastMsg}
           </div>
         </div>
       )}

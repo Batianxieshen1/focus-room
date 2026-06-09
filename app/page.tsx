@@ -46,6 +46,24 @@ function AppInner() {
 
   const currentScene = getScenes().find(s => s.id === sceneId) || getScenes()[0]
 
+  // Restore last selected scene on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('focus-room-last-scene')
+      if (saved) {
+        const scene = SCENES.find(s => s.id === saved)
+        if (scene) setSceneId(scene.id)
+      }
+    } catch {}
+  }, [])
+
+  // Persist scene selection to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('focus-room-last-scene', sceneId)
+    } catch {}
+  }, [sceneId])
+
   useEffect(() => { initLocale() }, [])
 
   // 切换场景时加过渡（视频交叉淡入淡出）

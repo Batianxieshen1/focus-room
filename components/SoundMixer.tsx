@@ -169,11 +169,21 @@ export default function SoundMixer({ activePlaylistId, onPlaylistChange }: Sound
                   : 'bg-white/[0.04] hover:bg-white/[0.08]'
               }`}
             >
-              <span className={`text-lg transition-transform duration-200 ${
-                sound.isPlaying ? 'scale-110' : 'group-hover:scale-105'
-              }`}>
-                {sound.icon}
-              </span>
+              <div className="flex items-center gap-1">
+                <span className={`text-lg transition-transform duration-200 ${
+                  sound.isPlaying ? 'scale-110' : 'group-hover:scale-105'
+                }`}>
+                  {sound.icon}
+                </span>
+                {/* Waveform indicator when playing */}
+                {sound.isPlaying && (
+                  <div className="flex items-end gap-[2px] h-3">
+                    <div className="w-[2px] bg-white/60 rounded-full animate-[wave_0.8s_ease-in-out_infinite]" style={{animationDelay: '0s'}} />
+                    <div className="w-[2px] bg-white/60 rounded-full animate-[wave_0.8s_ease-in-out_infinite]" style={{animationDelay: '0.15s'}} />
+                    <div className="w-[2px] bg-white/60 rounded-full animate-[wave_0.8s_ease-in-out_infinite]" style={{animationDelay: '0.3s'}} />
+                  </div>
+                )}
+              </div>
               <span className={`text-[10px] transition-colors duration-200 ${
                 sound.isPlaying ? 'text-white/80' : 'text-white/40'
               }`}>
