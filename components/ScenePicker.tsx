@@ -104,7 +104,7 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
                   className={`
                     w-full flex items-center gap-4 p-3 rounded-xl text-left transition-all duration-300
                     animate-[fadeInRight_0.4s_ease-out_both]
-                    hover:-translate-y-[2px] hover:shadow-lg hover:shadow-white/[0.04]
+                    hover:scale-[1.02] hover:shadow-lg hover:shadow-black/20
                     ${
                       isSelected
                         ? `bg-white/15 border border-white/30 shadow-lg shadow-white/5 ${entering ? 'scale-[1.05] opacity-100' : ''}`

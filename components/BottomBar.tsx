@@ -7,6 +7,7 @@ import SoundMixer from './SoundMixer'
 
 interface Props {
   sceneName: string
+  sceneIcon?: string
   sceneDescription: string
   isMuted: boolean
   volume: number
@@ -29,6 +30,7 @@ function formatSleepTime(totalSeconds: number): string {
 
 export default function BottomBar({
   sceneName,
+  sceneIcon,
   sceneDescription,
   isMuted,
   volume,
@@ -95,7 +97,8 @@ export default function BottomBar({
         {/* Scene info */}
         <div className="hidden flex-col items-center gap-0 sm:flex">
           <span className="text-[10px] leading-tight text-white/40">{t('bar.scene')}</span>
-          <span className="whitespace-nowrap text-sm font-semibold leading-tight text-white/90">
+          <span className="whitespace-nowrap text-sm font-semibold leading-tight text-white/90 flex items-center gap-1.5">
+            {sceneIcon && <span className="text-xs opacity-70">{sceneIcon}</span>}
             {sceneName}
           </span>
           <span
@@ -108,7 +111,8 @@ export default function BottomBar({
         </div>
 
         {/* Mobile: scene name only */}
-        <span className="whitespace-nowrap text-xs font-medium text-white/80 sm:hidden">
+        <span className="whitespace-nowrap text-xs sm:text-sm font-medium text-white/80 sm:hidden flex items-center gap-1">
+          {sceneIcon && <span className="text-[10px] opacity-70">{sceneIcon}</span>}
           {sceneName}
         </span>
 
