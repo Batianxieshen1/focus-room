@@ -274,12 +274,20 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+function broadcastMaster(volume: number, isMuted: boolean) {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent('focusroom:master', {
+    detail: { volume, isMuted },
+  }))
+}
+
   const setAmbientMaster = useCallback((volume: number) => {
     const v = Math.min(100, Math.max(0, volume))
     storageSet(MASTER_KEY, v)
     setAmbientMasterState(v)
     masterRef.current = v
     applyMasterToPlaying()
+    broadcastMaster(v, false)
   }, [applyMasterToPlaying])
 
   const applyMix = useCallback((volumes: Record<string, number>) => {
@@ -334,6 +342,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const apply = (s: Sound) => (s.isPlaying ? { ...s, isPlaying: false } : s)
     soundsRef.current = soundsRef.current.map(apply)
     setSounds(prev => prev.map(apply))
+    broadcastMaster(masterRef.current, true)
   }, [startFade, stopAndReset])
 
   const unmuteAll = useCallback(() => {
@@ -348,6 +357,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const apply = (s: Sound) => (!s.isPlaying && s.volume > 0 ? { ...s, isPlaying: true } : s)
     soundsRef.current = soundsRef.current.map(apply)
     setSounds(prev => prev.map(apply))
+    broadcastMaster(masterRef.current, false)
   }, [getAudio, ensureLoaded, effectiveVolume, startFade])
 
   const addCustomSound = useCallback(async (name: string, file: File): Promise<boolean> => {

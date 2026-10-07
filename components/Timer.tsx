@@ -81,6 +81,17 @@ export default function Timer({
     }
   }, [timer.notify, clearNotify])
 
+  // 后台恢复询问：15 秒无人操作时自动以「不计入」收起，避免脏数据与永久滞留
+  const resolvePrompt = timer.resolveBackgroundPrompt
+  const bgPrompt = timer.backgroundPrompt
+  useEffect(() => {
+    if (!bgPrompt) return
+    const timerId = setTimeout(() => {
+      resolvePrompt(false)
+    }, 15000)
+    return () => clearTimeout(timerId)
+  }, [bgPrompt, resolvePrompt])
+
   // Fire callback when a pomodoro completes (work phase ends)
   const prevCompletedRef = useRef(timer.completedPomodoros)
   useEffect(() => {
@@ -198,22 +209,34 @@ export default function Timer({
           ))}
         </div>
 
-        {/* 番茄钟状态 */}
+        {/* 番茄钟状态与呼吸引导提示 */}
         {timer.mode === 'pomodoro' && (
-          <div className={`text-sm tracking-widest transition-colors duration-300 ${
-            timer.pomodoroPhase === 'work' ? 'text-amber-200' :
-            timer.pomodoroPhase === 'longBreak' ? 'text-cyan-200' : 'text-emerald-200'
-          }`}>
-            {timer.pomodoroPhase === 'work' ? t('timer.focusing') :
-             timer.pomodoroPhase === 'longBreak' ? t('timer.longBreak') : t('timer.shortBreak')}
-            {timer.completedPomodoros > 0 && (
-              <span className="ml-3 text-white/60">· {t('timer.completed')} {timer.completedPomodoros} {t('timer.pomodoroCount')}</span>
+          <div className="flex flex-col items-center gap-1">
+            <div className={`text-sm tracking-widest transition-colors duration-300 ${
+              timer.pomodoroPhase === 'work' ? 'text-amber-200' :
+              timer.pomodoroPhase === 'longBreak' ? 'text-cyan-200' : 'text-emerald-200'
+            }`}>
+              {timer.pomodoroPhase === 'work' ? t('timer.focusing') :
+               timer.pomodoroPhase === 'longBreak' ? t('timer.longBreak') : t('timer.shortBreak')}
+              {timer.completedPomodoros > 0 && (
+                <span className="ml-3 text-white/60">· {t('timer.completed')} {timer.completedPomodoros} {t('timer.pomodoroCount')}</span>
+              )}
+            </div>
+            {timer.pomodoroPhase !== 'work' && (
+              <span className="text-[11px] text-emerald-300/80 tracking-wider flex items-center gap-1 animate-pulse">
+                <span>🌬️</span>
+                <span>4-7-8 呼吸放松 (吸4s · 屏7s · 呼8s)</span>
+              </span>
             )}
           </div>
         )}
 
         {/* 计时器主显示 */}
         <div className="relative flex items-center justify-center">
+          {/* 休息阶段 4-7-8 舒缓呼吸脉动光环 */}
+          {timer.mode === 'pomodoro' && timer.pomodoroPhase !== 'work' && (
+            <div className="absolute w-44 h-44 rounded-full pointer-events-none animate-breathe-478 border border-emerald-400/25" />
+          )}
           {timer.mode !== 'stopwatch' && (
             <svg className="absolute w-40 h-40 -rotate-90" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
@@ -324,29 +347,38 @@ export default function Timer({
         </div>
       </div>
 
-      {/* 后台超过 10 分钟返回询问弹窗 */}
+      {/* 后台超过 10 分钟返回询问浮岛胶囊（非侵入式，换形式不换语义） */}
       {timer.backgroundPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={e => e.stopPropagation()}>
-          <div className="glass-strong rounded-2xl p-6 max-w-xs w-full animate-scale-in text-center shadow-2xl border border-white/15">
-            <div className="text-3xl mb-2">⏳</div>
-            <h3 className="text-sm font-semibold text-white mb-2">
-              {t('timer.bgPromptTitle')}
-            </h3>
-            <p className="text-xs text-white/60 leading-relaxed mb-5">
-              {t('timer.bgPromptDesc').replace('{min}', String(Math.floor(timer.backgroundPrompt.elapsedSeconds / 60)))}
-            </p>
-            <div className="flex gap-2">
+        <div
+          className="fixed bottom-24 sm:bottom-28 left-1/2 z-40 -translate-x-1/2 w-[92vw] max-w-md animate-slide-up"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="aura-dock rounded-2xl px-4 py-3 shadow-2xl border border-white/20 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 bg-black/75">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="text-xl flex-shrink-0 animate-bounce">⏳</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-semibold text-white/95 truncate">
+                  {t('timer.bgPromptTitle')}
+                </span>
+                <span className="text-[11px] text-white/65 leading-tight">
+                  离开后台 {Math.floor(timer.backgroundPrompt.elapsedSeconds / 60)} 分钟，是否计入本次专注？
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end">
               <button
                 onClick={() => timer.resolveBackgroundPrompt(false)}
-                className="flex-1 py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-white/70 text-xs font-medium transition-all active:scale-95"
+                className="px-3 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.16] text-white/70 text-xs font-medium transition-all active:scale-95"
               >
                 {t('timer.bgPromptDiscard')}
               </button>
               <button
                 onClick={() => timer.resolveBackgroundPrompt(true)}
-                className="flex-1 py-2.5 rounded-xl bg-white/[0.22] hover:bg-white/[0.3] text-white text-xs font-medium transition-all active:scale-95 shadow-md"
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-500/80 hover:bg-emerald-500 text-white text-xs font-medium transition-all active:scale-95 shadow-md flex items-center gap-1"
               >
-                {t('timer.bgPromptResume')}
+                <span>✓</span>
+                <span>{t('timer.bgPromptResume')}</span>
               </button>
             </div>
           </div>

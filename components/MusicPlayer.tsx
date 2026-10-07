@@ -60,12 +60,26 @@ export default function MusicPlayer({ playlistId, api, expanded, onClear }: Prop
   const [playing, setPlaying] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [volume, setVolumeState] = useState<number>(() => storageGet<number>(MUSIC_VOLUME_KEY, 80))
+  const [masterVolume, setMasterVolume] = useState<number>(() => storageGet<number>('focus-room-ambient-master', 100))
+  const [isMasterMuted, setIsMasterMuted] = useState(false)
   const [progress, setProgress] = useState({ cur: 0, dur: 0 })
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const volRef = useRef(volume)
   const skipCountRef = useRef(0)
   useEffect(() => { volRef.current = volume }, [volume])
+
+  // 监听全局 Master 音量与静音
+  useEffect(() => {
+    const handleMaster = (e: Event) => {
+      const detail = (e as CustomEvent<{ volume?: number; isMuted?: boolean }>).detail
+      if (!detail) return
+      if (typeof detail.volume === 'number') setMasterVolume(detail.volume)
+      if (typeof detail.isMuted === 'boolean') setIsMasterMuted(detail.isMuted)
+    }
+    window.addEventListener('focusroom:master', handleMaster)
+    return () => window.removeEventListener('focusroom:master', handleMaster)
+  }, [])
 
   const current = tracks[index] ?? null
 
@@ -217,9 +231,10 @@ export default function MusicPlayer({ playlistId, api, expanded, onClear }: Prop
   // ===== 音量 =====
   useEffect(() => {
     const a = getAudio()
-    a.volume = volume / 100
+    const effectiveVol = isMasterMuted ? 0 : (volume / 100) * (masterVolume / 100)
+    a.volume = Math.min(1, Math.max(0, effectiveVol))
     storageSet(MUSIC_VOLUME_KEY, volume)
-  }, [volume, getAudio])
+  }, [volume, masterVolume, isMasterMuted, getAudio])
 
   // ===== Media Session（锁屏 / 通知栏控制）=====
   useEffect(() => {

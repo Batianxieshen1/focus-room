@@ -3,6 +3,8 @@
 // （如左 180Hz / 右 190Hz → 感知 10Hz α 波）。纯 Web Audio 合成，零素材。
 // 注意：必须佩戴耳机才能产生节拍效果。
 
+import { storageGet } from './storage'
+
 type Band = 'delta' | 'theta' | 'alpha' | 'beta'
 
 export const BINAURAL_BANDS: Record<Band, { beat: number; base: number }> = {
@@ -20,6 +22,8 @@ interface BinauralState {
   running: boolean
   band: Band
   volume: number // 0 ~ 1
+  masterVolume: number // 0 ~ 1
+  isMuted: boolean
 }
 
 const state: BinauralState = {
@@ -30,6 +34,8 @@ const state: BinauralState = {
   running: false,
   band: 'alpha',
   volume: 0.3,
+  masterVolume: 1,
+  isMuted: false,
 }
 
 function teardown() {
@@ -45,7 +51,8 @@ function teardown() {
 function apply() {
   if (!state.ctx || !state.gain) return
   const t = state.ctx.currentTime
-  const target = state.running ? state.volume : 0
+  const masterFactor = state.isMuted ? 0 : state.masterVolume
+  const target = state.running ? state.volume * masterFactor : 0
   state.gain.gain.cancelScheduledValues(t)
   state.gain.gain.setValueAtTime(state.gain.gain.value, t)
   state.gain.gain.linearRampToValueAtTime(target, t + 0.3)
@@ -69,6 +76,7 @@ export function setBinaural(opts: { on?: boolean; band?: Band; volume?: number }
   }
   if (opts.on === undefined) return
   if (opts.on) {
+    bindBinauralListeners()
     if (!state.ctx) {
       try {
         const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
@@ -114,8 +122,35 @@ export function isBinauralRunning(): boolean {
   return state.running
 }
 
-/** 睡眠定时到点时一并静音双耳节拍（监听全局事件） */
-export function bindBinauralSleepTimer() {
-  if (typeof window === 'undefined') return
+let listenersBound = false
+
+/** 绑定全局监听器：Master 音量、全局静音与睡眠定时 */
+export function bindBinauralListeners() {
+  if (typeof window === 'undefined' || listenersBound) return
+  listenersBound = true
+
+  // 读取初始 master 音量
+  const initialMaster = storageGet<number>('focus-room-ambient-master', 100)
+  if (typeof initialMaster === 'number') {
+    state.masterVolume = Math.min(1, Math.max(0, initialMaster / 100))
+  }
+
+  // 睡眠定时到点时一并静音双耳节拍
   window.addEventListener('focusroom:sleep-expired', () => setBinaural({ on: false }))
+
+  // 监听全局 Master 音量与静音广播
+  window.addEventListener('focusroom:master', (e: Event) => {
+    const detail = (e as CustomEvent<{ volume?: number; isMuted?: boolean }>).detail
+    if (!detail) return
+    if (typeof detail.volume === 'number') {
+      state.masterVolume = Math.min(1, Math.max(0, detail.volume / 100))
+    }
+    if (typeof detail.isMuted === 'boolean') {
+      state.isMuted = detail.isMuted
+    }
+    if (state.running) apply()
+  })
 }
+
+/** 兼容旧接口别名 */
+export const bindBinauralSleepTimer = bindBinauralListeners

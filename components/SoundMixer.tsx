@@ -94,6 +94,12 @@ const STUDY_RADIOS = [
   },
 ]
 
+const SOUND_CATEGORIES: Record<'nature' | 'space' | 'focus', string[]> = {
+  nature: ['rain', 'ocean', 'forest', 'fire', 'wind', 'night'],
+  space: ['cafe', 'keyboard', 'pageturn', 'clock'],
+  focus: ['whitenoise'],
+}
+
 export default function SoundMixer({
   activePlaylistId,
   onPlaylistChange,
@@ -128,9 +134,10 @@ export default function SoundMixer({
   // Sub-tab in music: radio | netease | link
   const [musicSubTab, setMusicSubTab] = useState<'radio' | 'netease' | 'link'>('radio')
 
-  // ===== 音效收藏 =====
+  // ===== 音效收藏与分类 =====
   const [soundFavs, setSoundFavs] = useState<string[]>(() => storageGet<string[]>('focus-room-sound-favs', []))
   const [showFavsOnly, setShowFavsOnly] = useState(false)
+  const [soundCategory, setSoundCategory] = useState<'all' | 'nature' | 'space' | 'focus'>('all')
 
   const toggleFav = (id: string) => {
     setSoundFavs(prev => {
@@ -170,23 +177,53 @@ export default function SoundMixer({
   const [activeRadioId, setActiveRadioId] = useState<string | null>(null)
   const [radioPlaying, setRadioPlaying] = useState(false)
   const [radioVolume, setRadioVolume] = useState<number>(() => storageGet<number>('focus-room-radio-volume', 75))
+  const [masterVolume, setMasterVolume] = useState<number>(() => storageGet<number>('focus-room-ambient-master', 100))
+  const [isMasterMuted, setIsMasterMuted] = useState(false)
   const radioAudioRef = useRef<HTMLAudioElement | null>(null)
 
-  // 电台音量同步
+  const handleStopRadio = useCallback(() => {
+    if (radioAudioRef.current) {
+      radioAudioRef.current.pause()
+      radioAudioRef.current.src = ''
+    }
+    setActiveRadioId(null)
+    setRadioPlaying(false)
+  }, [])
+
+  // 监听全局 Master 音量、静音与睡眠定时到点事件
+  useEffect(() => {
+    const handleMaster = (e: Event) => {
+      const detail = (e as CustomEvent<{ volume?: number; isMuted?: boolean }>).detail
+      if (!detail) return
+      if (typeof detail.volume === 'number') setMasterVolume(detail.volume)
+      if (typeof detail.isMuted === 'boolean') setIsMasterMuted(detail.isMuted)
+    }
+    const handleSleepExpired = () => {
+      handleStopRadio()
+    }
+    window.addEventListener('focusroom:master', handleMaster)
+    window.addEventListener('focusroom:sleep-expired', handleSleepExpired)
+    return () => {
+      window.removeEventListener('focusroom:master', handleMaster)
+      window.removeEventListener('focusroom:sleep-expired', handleSleepExpired)
+    }
+  }, [handleStopRadio])
+
+  // 电台音量随电台分轨音量、Master 总音量与全局静音动态联动
   useEffect(() => {
     if (radioAudioRef.current) {
-      radioAudioRef.current.volume = radioVolume / 100
+      const effectiveVol = isMasterMuted ? 0 : (radioVolume / 100) * (masterVolume / 100)
+      radioAudioRef.current.volume = Math.min(1, Math.max(0, effectiveVol))
     }
     storageSet('focus-room-radio-volume', radioVolume)
-  }, [radioVolume])
+  }, [radioVolume, masterVolume, isMasterMuted])
 
-  // 当外部网易云歌单激活时，自动暂停自习电台，避免声音打架
+  // 当外部网易云歌单激活时，自动停止自习电台，避免声音打架
   useEffect(() => {
-    if (activePlaylistId && radioAudioRef.current) {
-      radioAudioRef.current.pause()
-      setRadioPlaying(false)
+    if (activePlaylistId && (radioPlaying || radioAudioRef.current)) {
+      handleStopRadio()
     }
-  }, [activePlaylistId])
+  }, [activePlaylistId, radioPlaying, handleStopRadio])
 
   // 清理电台实例
   useEffect(() => {
@@ -214,27 +251,21 @@ export default function SoundMixer({
         radioAudioRef.current = new Audio()
       }
       radioAudioRef.current.src = station.streamUrl
-      radioAudioRef.current.volume = radioVolume / 100
+      const effectiveVol = isMasterMuted ? 0 : (radioVolume / 100) * (masterVolume / 100)
+      radioAudioRef.current.volume = Math.min(1, Math.max(0, effectiveVol))
       radioAudioRef.current.play()
         .then(() => {
           setActiveRadioId(station.id)
           setRadioPlaying(true)
-          onPlaylistChange?.(null)
+          if (activePlaylistId) {
+            onPlaylistChange?.(null)
+          }
         })
         .catch(() => {
           setNotification(t('sound.fetchError'))
           setTimeout(() => setNotification(null), 2500)
         })
     }
-  }
-
-  const handleStopRadio = () => {
-    if (radioAudioRef.current) {
-      radioAudioRef.current.pause()
-      radioAudioRef.current.src = ''
-    }
-    setActiveRadioId(null)
-    setRadioPlaying(false)
   }
 
   // Buffer loading states
@@ -263,6 +294,7 @@ export default function SoundMixer({
   const handlePlaylistUrl = () => {
     const id = extractPlaylistId(playlistUrl.trim())
     if (id) {
+      handleStopRadio()
       onPlaylistChange?.(id)
       setPlaylistUrl('')
     }
@@ -452,10 +484,37 @@ export default function SoundMixer({
             </div>
           </div>
 
+          {/* Category Filter Tabs */}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+            {[
+              { id: 'all', label: '全部', icon: '✨' },
+              { id: 'nature', label: '天籁自然', icon: '🌿' },
+              { id: 'space', label: '空间生活', icon: '🏙' },
+              { id: 'focus', label: '专注调频', icon: '🧠' },
+            ].map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setSoundCategory(cat.id as typeof soundCategory)}
+                className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] whitespace-nowrap transition-all duration-150 flex items-center justify-center gap-1 ${
+                  soundCategory === cat.id
+                    ? 'bg-white/[0.14] text-white font-medium shadow-xs border border-white/10'
+                    : 'text-white/45 hover:text-white/80'
+                }`}
+              >
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
+              </button>
+            ))}
+          </div>
+
           {/* Built-in sound tiles grid */}
           <div className="grid grid-cols-4 gap-2">
             {builtInSounds
               .filter(s => !showFavsOnly || soundFavs.includes(s.id))
+              .filter(s => {
+                if (soundCategory === 'all') return true
+                return SOUND_CATEGORIES[soundCategory].includes(s.id)
+              })
               .map(sound => (
               <button
                 key={sound.id}
@@ -858,7 +917,10 @@ export default function SoundMixer({
               {PRESET_PLAYLISTS.map(pl => (
                 <button
                   key={pl.id}
-                  onClick={() => onPlaylistChange?.(pl.id)}
+                  onClick={() => {
+                    handleStopRadio()
+                    onPlaylistChange?.(pl.id)
+                  }}
                   className={`flex flex-col items-start p-3 rounded-xl text-left transition-all duration-200 active:scale-[0.98] border ${
                     activePlaylistId === pl.id
                       ? 'bg-white/[0.14] border-emerald-400/40 shadow-sm'
