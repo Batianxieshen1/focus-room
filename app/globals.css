@@ -71,29 +71,73 @@ html, body {
 .text-body { font-weight: 400; line-height: 1.6; }
 .text-caption { font-weight: 400; font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; }
 
-/* ==================== Glass Panel ==================== */
+/* ==================== Aura Glass 3.0 Material System ==================== */
 .glass {
-  background: rgba(0, 0, 0, 0.25);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.015) 100%), rgba(12, 12, 22, 0.42);
+  -webkit-backdrop-filter: saturate(190%) blur(24px);
+  backdrop-filter: saturate(190%) blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.35), inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-subtle {
-  background: rgba(0, 0, 0, 0.08);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%), rgba(10, 10, 18, 0.22);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px -2px rgba(0, 0, 0, 0.25);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-strong {
-  background: rgba(0, 0, 0, 0.45);
-  -webkit-backdrop-filter: saturate(200%) blur(24px);
-  backdrop-filter: saturate(200%) blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(10, 10, 20, 0.72);
+  -webkit-backdrop-filter: saturate(200%) blur(28px);
+  backdrop-filter: saturate(200%) blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 48px -8px rgba(0, 0, 0, 0.52), inset 0 1px 1px 0 rgba(255, 255, 255, 0.22);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* Floating Dock for Bottom Bar */
+.aura-dock {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(12, 12, 22, 0.76);
+  -webkit-backdrop-filter: saturate(200%) blur(32px);
+  backdrop-filter: saturate(200%) blur(32px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 18px 48px -6px rgba(0, 0, 0, 0.58), inset 0 1px 1px 0 rgba(255, 255, 255, 0.24);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Elevated Card with physical depth */
+.aura-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(12, 12, 22, 0.68);
+  -webkit-backdrop-filter: saturate(190%) blur(28px);
+  backdrop-filter: saturate(190%) blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.48), inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Minimalist Pill Capsule (e.g. Minimized Timer, Marquee pill) */
+.aura-capsule {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%), rgba(14, 14, 26, 0.7);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  backdrop-filter: saturate(180%) blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 28px -4px rgba(0, 0, 0, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Slide-in Drawer from Right or Bottom */
+.aura-drawer {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.015) 100%), rgba(10, 10, 18, 0.85);
+  -webkit-backdrop-filter: saturate(200%) blur(36px);
+  backdrop-filter: saturate(200%) blur(36px);
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: -16px 0 48px rgba(0, 0, 0, 0.6);
+}
+
 
 /* ==================== Buttons ==================== */
 .btn-ghost {
@@ -270,6 +314,24 @@ input[type="range"]::-moz-range-thumb {
   animation: scaleIn 0.3s ease-out;
 }
 
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-drawer-right {
+  animation: slideInRight 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-drawer-bottom {
+  animation: slideInUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Tailwind animate-ping fallback */
 @keyframes ping {
   75%, 100% {
@@ -288,22 +350,46 @@ input[type="range"]::-moz-range-thumb {
   object-fit: cover;
 }
 
+/* ==================== Cinematic Film Grain Texture (35mm Micro-Noise) ==================== */
+.cinema-grain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.038;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  z-index: 2;
+}
+
 /* ==================== Overlay ==================== */
 .overlay-vignette {
   background: radial-gradient(
     ellipse at center,
-    transparent 40%,
-    rgba(0, 0, 0, 0.4) 100%
+    transparent 55%,
+    rgba(0, 0, 0, 0.22) 100%
   );
 }
 
 .overlay-bottom {
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.35) 0%,
-    rgba(0, 0, 0, 0.1) 40%,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0.06) 50%,
     transparent 100%
   );
+}
+
+/* ==================== Zen Clock (清屏桌搭模式) ==================== */
+.zen-clock {
+  font-size: clamp(4rem, 16vw, 11rem);
+  font-weight: 200;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.94);
+  text-shadow: 0 4px 40px rgba(0, 0, 0, 0.45);
 }
 
 /* ==================== Confetti ==================== */
@@ -383,131 +469,6 @@ input[type="range"]::-moz-range-thumb {
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-/* ==================== Light Theme ==================== */
-html.light-theme {
-  background: #f0f0f0;
-  color: #1a1a1a;
-}
-
-html.light-theme :root,
-html.light-theme {
-  --background: #f0f0f0;
-  --foreground: #1a1a1a;
-  --glass-bg: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(0, 0, 0, 0.08);
-  --text-primary: rgba(0, 0, 0, 0.9);
-  --text-secondary: rgba(0, 0, 0, 0.6);
-  --text-muted: rgba(0, 0, 0, 0.35);
-  --surface-subtle: rgba(0, 0, 0, 0.04);
-  --surface-hover: rgba(0, 0, 0, 0.08);
-  --surface-active: rgba(0, 0, 0, 0.1);
-  --overlay: rgba(0, 0, 0, 0.3);
-}
-
-/* Light theme: .glass class (TopNav) */
-html.light-theme .glass {
-  background: rgba(255, 255, 255, 0.75);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
-}
-
-html.light-theme .glass-subtle {
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-html.light-theme .glass-strong {
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255,255,255,0.6);
-}
-
-html.light-theme .btn-ghost {
-  color: var(--text-secondary);
-}
-html.light-theme .btn-ghost:hover {
-  color: var(--text-primary);
-}
-
-html.light-theme .btn-pill {
-  background: rgba(0, 0, 0, 0.06);
-  color: var(--text-secondary);
-}
-html.light-theme .btn-pill:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: var(--text-primary);
-}
-html.light-theme .btn-pill.active {
-  background: rgba(0, 0, 0, 0.1);
-  color: var(--text-primary);
-  border-color: rgba(0, 0, 0, 0.12);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-}
-
-html.light-theme .btn-primary {
-  color: #ffffff;
-}
-
-html.light-theme .overlay-vignette {
-  background: radial-gradient(
-    ellipse at center,
-    transparent 40%,
-    rgba(0, 0, 0, 0.15) 100%
-  );
-}
-
-html.light-theme .overlay-bottom {
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.12) 0%,
-    rgba(0, 0, 0, 0.04) 40%,
-    transparent 100%
-  );
-}
-
-/* Light theme: celebration overlay (radial gradient should be lighter) */
-html.light-theme .celebration-overlay {
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(251,191,36,0.15) 0%,
-    rgba(52,211,153,0.1) 40%,
-    transparent 70%
-  );
-}
-
-/* Light theme: ScenePicker dark overlay becomes lighter */
-html.light-theme .scene-picker-overlay {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-html.light-theme ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-}
-
-html.light-theme ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
-}
-
-html.light-theme input[type="range"]::-webkit-slider-runnable-track {
-  background: rgba(0, 0, 0, 0.12);
-}
-
-html.light-theme input[type="range"]::-webkit-slider-thumb {
-  background: rgba(0, 0, 0, 0.75);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-}
-
-html.light-theme input[type="range"]::-moz-range-track {
-  background: rgba(0, 0, 0, 0.12);
-}
-
-html.light-theme input[type="range"]::-moz-range-thumb {
-  background: rgba(0, 0, 0, 0.75);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* ==================== Mobile Responsive ==================== */

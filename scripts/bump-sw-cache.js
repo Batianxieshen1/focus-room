@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * Prebuild script: 自动更新 Service Worker 缓存版本号
  * 每次 npm run build 时自动执行，确保用户总是获取最新资源

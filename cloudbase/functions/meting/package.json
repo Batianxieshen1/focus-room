@@ -1,0 +1,7 @@
+{
+  "name": "meting",
+  "version": "1.0.0",
+  "description": "Meting-compatible NetEase playlist proxy for Focus Room (zero deps)",
+  "main": "index.js",
+  "dependencies": {}
+}

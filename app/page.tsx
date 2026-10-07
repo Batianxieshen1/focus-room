@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { t } from '@/lib/i18n'
+import { useTranslation, initLocale } from '@/lib/i18n'
+import { storageGet, storageSet } from '@/lib/storage'
 import Landing from '@/components/Landing'
 import ScenePicker from '@/components/ScenePicker'
 import VideoBackground from '@/components/VideoBackground'
@@ -9,28 +10,30 @@ import FocusView from '@/components/FocusView'
 import { Scene, SCENES, getScenes } from '@/components/SceneSelector'
 import { AudioProvider } from '@/contexts/AudioContext'
 import ErrorBoundary from '@/components/ErrorBoundary'
-import { initLocale } from '@/lib/i18n'
+import { loadAtmosphere, applyAtmosphereCss } from '@/lib/atmosphere'
 
 type AppStep = 'landing' | 'picker' | 'focus'
 
 // 主页面
 function AppInner() {
+  const { t } = useTranslation()
   const [step, setStep] = useState<AppStep>('landing')
   const [displayedStep, setDisplayedStep] = useState<AppStep>('landing')
   const [pageTransitioning, setPageTransitioning] = useState(false)
-  const [sceneId, setSceneId] = useState(SCENES[0].id)
-  const [videoTransitioning, setVideoTransitioning] = useState(false)
+  const [sceneId, setSceneId] = useState<string>(() => {
+    if (typeof window === 'undefined') return SCENES[0].id
+    const saved = storageGet<string | null>('focus-room-last-scene', null)
+    if (saved && SCENES.some(s => s.id === saved)) {
+      return saved
+    }
+    return SCENES[0].id
+  })
 
   // First-use onboarding
-  const [onboardingStep, setOnboardingStep] = useState<number | null>(null) // null = not showing, 0/1/2 = step index
-
-  useEffect(() => {
-    try {
-      if (!localStorage.getItem('focus-room-onboarded')) {
-        setOnboardingStep(0)
-      }
-    } catch {}
-  }, [])
+  const [onboardingStep, setOnboardingStep] = useState<number | null>(() => {
+    if (typeof window === 'undefined') return null
+    return storageGet<string | null>('focus-room-onboarded', null) ? null : 0
+  })
 
   const handleOnboardingNext = useCallback(() => {
     setOnboardingStep(prev => {
@@ -40,39 +43,27 @@ function AppInner() {
   }, [])
 
   const handleOnboardingFinish = useCallback(() => {
-    try { localStorage.setItem('focus-room-onboarded', '1') } catch {}
+    storageSet('focus-room-onboarded', '1')
     setOnboardingStep(null)
   }, [])
 
   const currentScene = getScenes().find(s => s.id === sceneId) || getScenes()[0]
 
-  // Restore last selected scene on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('focus-room-last-scene')
-      if (saved) {
-        const scene = SCENES.find(s => s.id === saved)
-        if (scene) setSceneId(scene.id)
-      }
-    } catch {}
-  }, [])
-
   // Persist scene selection to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem('focus-room-last-scene', sceneId)
-    } catch {}
+    storageSet('focus-room-last-scene', sceneId)
   }, [sceneId])
 
   useEffect(() => { initLocale() }, [])
 
+  // 恢复视觉氛围设置（遮光/虚化/暖色 CSS 变量，全站视频背景生效）
+  useEffect(() => { applyAtmosphereCss(loadAtmosphere()) }, [])
+
   // 切换场景时加过渡（视频交叉淡入淡出）
   const handleChangeScene = useCallback((scene: Scene) => {
     if (scene.id === sceneId) return
-    setVideoTransitioning(true)
     setTimeout(() => {
       setSceneId(scene.id)
-      setTimeout(() => setVideoTransitioning(false), 100)
     }, 300)
   }, [sceneId])
 
@@ -92,10 +83,6 @@ function AppInner() {
     setStepWithTransition('focus')
   }, [setStepWithTransition])
   const handlePickerBack = useCallback(() => setStepWithTransition('landing'), [setStepWithTransition])
-  const handlePickerEnter = useCallback((scene: Scene) => {
-    handleChangeScene(scene)
-    setTimeout(() => setStepWithTransition('focus'), 100)
-  }, [handleChangeScene, setStepWithTransition])
   const handleBackToPicker = useCallback(() => setStepWithTransition('picker'), [setStepWithTransition])
 
   return (
@@ -138,7 +125,7 @@ function AppInner() {
       {onboardingStep !== null && step === 'focus' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fade-in">
           <div className="absolute inset-0 bg-black/60" />
-          <div className="glass-strong rounded-3xl p-8 w-[360px] relative animate-scale-in text-center">
+          <div className="glass-strong rounded-3xl p-8 w-[min(360px,calc(100vw-2.5rem))] relative animate-scale-in text-center">
             {/* Step indicators */}
             <div className="flex justify-center gap-2 mb-6">
               {[0, 1, 2].map(i => (

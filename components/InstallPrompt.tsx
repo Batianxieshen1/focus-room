@@ -2,22 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { t } from '@/lib/i18n'
+import { storageGet, storageSet } from '@/lib/storage'
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
 
 export default function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [visible, setVisible] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(() => (typeof window !== 'undefined' ? storageGet<string>('focus-room-install-dismissed', '0') === '1' : false))
 
   useEffect(() => {
-    try {
-      if (localStorage.getItem('focus-room-install-dismissed') === '1') {
-        setDismissed(true)
-      }
-    } catch {}
-
     const handler = (e: Event) => {
       e.preventDefault()
-      setDeferredPrompt(e)
+      setDeferredPrompt(e as BeforeInstallPromptEvent)
       // 延迟显示，让用户先体验页面
       setTimeout(() => setVisible(true), 3000)
     }
@@ -39,7 +39,7 @@ export default function InstallPrompt() {
   const handleDismiss = () => {
     setVisible(false)
     setDismissed(true)
-    try { localStorage.setItem('focus-room-install-dismissed', '1') } catch {}
+    storageSet('focus-room-install-dismissed', '1')
   }
 
   if (!visible || dismissed || !deferredPrompt) return null

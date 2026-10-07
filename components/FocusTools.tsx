@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { t } from '@/lib/i18n'
+import { storageGet, storageSet } from '@/lib/storage'
 
 interface Link {
   id: string
@@ -25,34 +26,19 @@ const DEFAULT_LINKS: Link[] = [
 const STORAGE_KEY = 'focus-room-tools'
 
 function loadCustomLinks(): Link[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    if (Array.isArray(parsed)) return parsed
-    return []
-  } catch {
-    return []
-  }
+  return storageGet<Link[]>(STORAGE_KEY, [])
 }
 
 function saveCustomLinks(links: Link[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(links))
-  } catch {}
+  storageSet(STORAGE_KEY, links)
 }
 
 export default function FocusTools({ onClose }: Props) {
-  const [customLinks, setCustomLinks] = useState<Link[]>([])
+  const [customLinks, setCustomLinks] = useState<Link[]>(() => (typeof window !== 'undefined' ? loadCustomLinks() : []))
   const [name, setName] = useState('')
   const [url, setUrl] = useState('')
   const [error, setError] = useState('')
   const nameRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    setCustomLinks(loadCustomLinks())
-  }, [])
 
   useEffect(() => {
     // Focus the name input when panel opens

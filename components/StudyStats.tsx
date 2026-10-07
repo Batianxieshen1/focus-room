@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { getStudyHistory, StudySession } from '@/hooks/useTimer'
 import { t } from '@/lib/i18n'
+import { storageGet, storageSet } from '@/lib/storage'
 
 function getLocalDate(d?: Date): string {
   const dt = d || new Date()
@@ -14,12 +15,8 @@ interface Props {
 }
 
 export default function StudyStats({ onClose }: Props) {
-  const [history, setHistory] = useState<StudySession[]>([])
+  const [history, setHistory] = useState<StudySession[]>(() => (typeof window !== 'undefined' ? getStudyHistory() : []))
   const [importMessage, setImportMessage] = useState<string | null>(null)
-
-  useEffect(() => {
-    setHistory(getStudyHistory())
-  }, [])
 
   const formatDuration = (seconds: number) => {
     const h = Math.floor(seconds / 3600)
@@ -107,22 +104,10 @@ export default function StudyStats({ onClose }: Props) {
       version: 1,
       exportedAt: new Date().toISOString(),
       history: getStudyHistory(),
-      settings: (() => {
-        try { return JSON.parse(localStorage.getItem('focus-room-settings') || '{}') }
-        catch { return {} }
-      })(),
-      dailyGoal: (() => {
-        try { return JSON.parse(localStorage.getItem('focus-room-daily-goal') || '60') }
-        catch { return 60 }
-      })(),
-      volumes: (() => {
-        try { return JSON.parse(localStorage.getItem('focus-room-volumes') || '{}') }
-        catch { return {} }
-      })(),
-      locale: (() => {
-        try { return localStorage.getItem('focus-room-locale') || 'zh' }
-        catch { return 'zh' }
-      })(),
+      settings: storageGet('focus-room-settings', {}),
+      dailyGoal: storageGet('focus-room-daily-goal', 60),
+      volumes: storageGet('focus-room-volumes', {}),
+      locale: storageGet('focus-room-locale', 'zh'),
     }
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -180,20 +165,20 @@ export default function StudyStats({ onClose }: Props) {
           .filter(h => h.date >= cutoffStr)
           .sort((a, b) => a.date.localeCompare(b.date))
 
-        localStorage.setItem('focus-room-history', JSON.stringify(filtered))
+        storageSet('focus-room-history', filtered)
 
         // Import settings if present
         if (data.settings && typeof data.settings === 'object') {
-          localStorage.setItem('focus-room-settings', JSON.stringify(data.settings))
+          storageSet('focus-room-settings', data.settings)
         }
         if (data.dailyGoal !== undefined) {
-          localStorage.setItem('focus-room-daily-goal', JSON.stringify(data.dailyGoal))
+          storageSet('focus-room-daily-goal', data.dailyGoal)
         }
         if (data.volumes && typeof data.volumes === 'object') {
-          localStorage.setItem('focus-room-volumes', JSON.stringify(data.volumes))
+          storageSet('focus-room-volumes', data.volumes)
         }
         if (data.locale) {
-          localStorage.setItem('focus-room-locale', data.locale)
+          storageSet('focus-room-locale', data.locale)
         }
 
         setHistory(filtered)

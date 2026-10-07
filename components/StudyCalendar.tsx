@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { getStudyHistory, StudySession } from '@/hooks/useTimer'
 import { t } from '@/lib/i18n'
 
@@ -9,12 +9,8 @@ interface Props {
 }
 
 export default function StudyCalendar({ onClose }: Props) {
-  const [history, setHistory] = useState<StudySession[]>([])
+  const [history] = useState<StudySession[]>(() => (typeof window !== 'undefined' ? getStudyHistory() : []))
   const [currentDate, setCurrentDate] = useState(new Date())
-
-  useEffect(() => {
-    setHistory(getStudyHistory())
-  }, [])
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()

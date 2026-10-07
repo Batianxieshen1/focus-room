@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { t } from '@/lib/i18n'
+import { storageGet, storageSet } from '@/lib/storage'
 
 const DISMISSED_KEY = 'focus-room-shortcut-indicator-dismissed'
 
@@ -15,16 +16,9 @@ const SHORTCUTS = [
 
 export default function ShortcutIndicator({ inline = false }: { inline?: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(() => (typeof window !== 'undefined' ? storageGet<string>(DISMISSED_KEY, '0') === '1' : false))
   const popupRef = useRef<HTMLDivElement>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    try {
-      const val = localStorage.getItem(DISMISSED_KEY)
-      if (val === '1') setDismissed(true)
-    } catch {}
-  }, [])
 
   useEffect(() => {
     if (!isOpen) return
@@ -43,7 +37,7 @@ export default function ShortcutIndicator({ inline = false }: { inline?: boolean
   const handleDismiss = () => {
     setDismissed(true)
     setIsOpen(false)
-    try { localStorage.setItem(DISMISSED_KEY, '1') } catch {}
+    storageSet(DISMISSED_KEY, '1')
   }
 
   if (dismissed && !isOpen) return null

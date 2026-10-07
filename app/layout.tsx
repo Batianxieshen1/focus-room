@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "一个让你专注学习的沉浸式环境，包含动态自然场景、白噪音和计时器",
   keywords: ['专注', '学习', '番茄钟', '白噪音', '自习室', 'focus', 'study', 'pomodoro', 'white noise'],
   authors: [{ name: 'Focus Room' }],
-  manifest: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/manifest.json`,
+  manifest: `${process.env.NEXT_PUBLIC_BASE_PATH ?? '/focus-room'}/manifest.json`,
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -61,14 +61,6 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
         <link rel="apple-touch-icon" href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/icon-192.png`} />
         <link rel="icon" type="image/svg+xml" href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/icon.svg`} />
-        {/* 防止主题闪烁：在 body 渲染前同步读取 localStorage 并应用 class */}
-        <script dangerouslySetInnerHTML={{ __html: `
-          try {
-            if (localStorage.getItem('focus-room-theme') === 'light') {
-              document.documentElement.classList.add('light-theme')
-            }
-          } catch {}
-        `}} />
       </head>
       <body className="h-full overflow-hidden font-sans">
         {children}

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { t, getLocale, setLocale, Locale } from '@/lib/i18n'
-import { getTheme, setTheme, Theme } from '@/lib/theme'
+import { useState } from 'react'
+import { useTranslation } from '@/lib/i18n'
+import { storageGet, storageSet } from '@/lib/storage'
 import RangeSlider from './ui/RangeSlider'
 
 interface Settings {
@@ -12,6 +12,7 @@ interface Settings {
   longBreakInterval: number
   soundEnabled?: boolean
   autoStart?: boolean
+  wakeLock?: boolean
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -30,29 +31,14 @@ interface Props {
 }
 
 export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
-  const [locale, setLocaleState] = useState<Locale>(getLocale())
-  const [theme, setThemeState] = useState<Theme>(getTheme())
-
-  // 加载保存的设置
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('focus-room-settings')
-      if (saved) {
-        setSettings(JSON.parse(saved))
-      }
-    } catch {}
-  }, [isOpen])
-
-  // 语言和主题即时生效
-  useEffect(() => { setLocale(locale) }, [locale])
-  useEffect(() => { setTheme(theme) }, [theme])
+  const { t, locale, setLocale } = useTranslation()
+  const [settings, setSettings] = useState<Settings>(() => storageGet('focus-room-settings', DEFAULT_SETTINGS))
+  const [metingApi, setMetingApi] = useState<string>(() => storageGet('focus-room-meting-api', ''))
 
   // 保存设置
   const handleSave = () => {
-    localStorage.setItem('focus-room-settings', JSON.stringify(settings))
-    setLocale(locale)
-    setTheme(theme)
+    storageSet('focus-room-settings', settings)
+    storageSet('focus-room-meting-api', metingApi.trim())
     onSettingsChange(settings)
     onClose()
   }
@@ -67,7 +53,7 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in" onClick={onClose}>
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="glass-strong rounded-3xl p-8 w-[400px] relative animate-scale-in"
+      <div className="glass-strong rounded-3xl p-8 w-full max-w-[400px] relative animate-scale-in mx-4"
         onClick={e => e.stopPropagation()}>
 
         <button
@@ -81,6 +67,34 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
         </button>
 
         <h2 className="text-lg font-medium text-white mb-6">{t('settings.title')}</h2>
+
+        {/* 番茄时长预设组：一键套用成组配置（FocusTide 风格） */}
+        <div className="mb-5">
+          <label className="text-sm text-white/70 mb-2 block">{t('settings.presets')}</label>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { key: 'settings.presetClassic', label: '25 / 5 · 15×4', v: { pomodoroMinutes: 25, breakMinutes: 5, longBreakMinutes: 15, longBreakInterval: 4 } },
+              { key: 'settings.presetDeep', label: '50 / 10 · 30×2', v: { pomodoroMinutes: 50, breakMinutes: 10, longBreakMinutes: 30, longBreakInterval: 2 } },
+              { key: 'settings.presetSprint', label: '15 / 3 · 10×4', v: { pomodoroMinutes: 15, breakMinutes: 3, longBreakMinutes: 10, longBreakInterval: 4 } },
+            ] as const).map(p => {
+              const active = (['pomodoroMinutes', 'breakMinutes', 'longBreakMinutes', 'longBreakInterval'] as const).every(k => settings[k] === p.v[k])
+              return (
+                <button
+                  key={p.key}
+                  onClick={() => setSettings(prev => ({ ...prev, ...p.v }))}
+                  className={`flex flex-col items-center gap-0.5 py-2 rounded-xl transition-all duration-200 active:scale-95 border ${
+                    active
+                      ? 'bg-white/[0.15] border-white/30 text-white'
+                      : 'bg-white/[0.04] border-white/[0.06] text-white/55 hover:bg-white/[0.08] hover:text-white/85'
+                  }`}
+                >
+                  <span className="text-[11px] font-medium">{t(p.key)}</span>
+                  <span className="text-[9px] tabular-nums opacity-70">{p.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
         <div className="space-y-5">
           <RangeSlider label={t('settings.pomodoro')} value={settings.pomodoroMinutes} min={5} max={60} step={5} unit="m" onChange={v => updateSetting('pomodoroMinutes', v)} />
@@ -124,12 +138,41 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
             </button>
           </div>
 
+          {/* Wake Lock toggle — 平板桌搭模式防息屏 */}
+          <div className="flex items-center justify-between">
+            <label className="text-sm text-white/70">{t('settings.wakeLock')}</label>
+            <button
+              onClick={() => updateSetting('wakeLock', settings.wakeLock === true ? false : true)}
+              className={`relative w-10 h-5 rounded-full transition-all duration-200 ${
+                settings.wakeLock ? 'bg-white/20' : 'bg-white/[0.06]'
+              }`}
+            >
+              <div
+                className={`absolute top-0.5 w-4 h-4 rounded-full transition-all duration-200`}
+                style={{ left: settings.wakeLock ? '22px' : '2px', backgroundColor: settings.wakeLock ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)' }}
+              />
+            </button>
+          </div>
+
+          {/* Meting API 地址（内置音乐播放器数据源） */}
+          <div>
+            <label className="text-sm text-white/70 mb-2 block">{t('settings.metingApi')}</label>
+            <input
+              type="text"
+              value={metingApi}
+              onChange={e => setMetingApi(e.target.value)}
+              placeholder="https://<envId>.service.tcloudbase.com/meting"
+              className="w-full px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-white text-xs placeholder:text-white/25 focus:outline-none focus:border-white/20"
+            />
+            <p className="text-[10px] text-white/30 mt-1.5 leading-relaxed">{t('settings.metingApiHint')}</p>
+          </div>
+
           {/* Language toggle */}
           <div>
             <label className="text-sm text-white/70 mb-2 block">{t('settings.language')}</label>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setLocaleState('zh')}
+                onClick={() => setLocale('zh')}
                 className={`px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200 ${
                   locale === 'zh'
                     ? 'bg-white/[0.15] text-white'
@@ -139,7 +182,7 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
                 {t('settings.chinese')}
               </button>
               <button
-                onClick={() => setLocaleState('en')}
+                onClick={() => setLocale('en')}
                 className={`px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200 ${
                   locale === 'en'
                     ? 'bg-white/[0.15] text-white'
@@ -151,46 +194,6 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
             </div>
           </div>
 
-          {/* Theme toggle */}
-          <div>
-            <label className="text-sm text-white/70 mb-2 block">{t('settings.theme', '主题')}</label>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setThemeState('dark')}
-                className={`px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
-                  theme === 'dark'
-                    ? 'bg-white/[0.15] text-white'
-                    : 'bg-white/[0.04] text-white/40 hover:text-white/70 hover:bg-white/[0.08]'
-                }`}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
-                {t('settings.dark', '深色')}
-              </button>
-              <button
-                onClick={() => setThemeState('light')}
-                className={`px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
-                  theme === 'light'
-                    ? 'bg-white/[0.15] text-white'
-                    : 'bg-white/[0.04] text-white/40 hover:text-white/70 hover:bg-white/[0.08]'
-                }`}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="5"/>
-                  <line x1="12" y1="1" x2="12" y2="3"/>
-                  <line x1="12" y1="21" x2="12" y2="23"/>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                  <line x1="1" y1="12" x2="3" y2="12"/>
-                  <line x1="21" y1="12" x2="23" y2="12"/>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                </svg>
-                {t('settings.light', '浅色')}
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* 快捷键提示 */}

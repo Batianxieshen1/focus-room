@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Scene, SCENES, SCENE_GRADIENTS, getScenes } from '@/components/SceneSelector'
+import { Scene, SCENE_GRADIENTS, getScenes } from '@/components/SceneSelector'
 import { t } from '@/lib/i18n'
 
 interface Props {
@@ -14,7 +14,6 @@ interface Props {
 export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onEnter }: Props) {
   const [entering, setEntering] = useState(false)
   const scenes = getScenes()
-  const selectedScene = scenes.find((s) => s.id === currentSceneId) || scenes[0]
 
   const handleSelect = (id: string) => {
     if (id === currentSceneId) return

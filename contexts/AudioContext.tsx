@@ -3,7 +3,8 @@
 import { useState, useCallback, useRef, useEffect, createContext, useContext, ReactNode } from 'react'
 import { storageGet, storageSet } from '@/lib/storage'
 import { saveCustomSound, loadCustomSounds, deleteCustomSound } from '@/lib/audioDB'
-import { t } from '@/lib/i18n'
+import { applyMixFromURL } from '@/lib/mixShare'
+import { t, TranslationKey } from '@/lib/i18n'
 
 export interface Sound {
   id: string
@@ -17,8 +18,13 @@ export interface Sound {
 
 interface AudioContextValue {
   sounds: Sound[]
+  /** 环境音总音量（母线），0 ~ 100 */
+  ambientMaster: number
   toggleSound: (id: string) => void
   setVolume: (id: string, volume: number) => void
+  setAmbientMaster: (volume: number) => void
+  /** 应用一套混音配方：volumes 里没提到或为 0 的音会被停掉 */
+  applyMix: (volumes: Record<string, number>) => void
   muteAll: () => void
   unmuteAll: () => void
   addCustomSound: (name: string, file: File) => Promise<boolean>
@@ -27,9 +33,9 @@ interface AudioContextValue {
 
 const AudioContext = createContext<AudioContextValue | null>(null)
 
-const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '/focus-room'
 
-const SOUND_DEFAULTS: Array<Omit<Sound, 'volume' | 'name'> & { nameKey: string }> = [
+const SOUND_DEFAULTS: Array<Omit<Sound, 'volume' | 'name'> & { nameKey: TranslationKey }> = [
   { id: 'rain', nameKey: 'sound.rain', icon: '🌧', isPlaying: false, file: BASE_PATH + '/sounds/rain.mp3' },
   { id: 'ocean', nameKey: 'sound.ocean', icon: '🌊', isPlaying: false, file: BASE_PATH + '/sounds/ocean.mp3' },
   { id: 'forest', nameKey: 'sound.forest', icon: '🌲', isPlaying: false, file: BASE_PATH + '/sounds/forest.mp3' },
@@ -38,24 +44,40 @@ const SOUND_DEFAULTS: Array<Omit<Sound, 'volume' | 'name'> & { nameKey: string }
   { id: 'wind', nameKey: 'sound.wind', icon: '💨', isPlaying: false, file: BASE_PATH + '/sounds/wind.mp3' },
   { id: 'night', nameKey: 'sound.night', icon: '🦗', isPlaying: false, file: BASE_PATH + '/sounds/night.mp3' },
   { id: 'whitenoise', nameKey: 'sound.whitenoise', icon: '📻', isPlaying: false, file: BASE_PATH + '/sounds/whitenoise.wav' },
+  { id: 'keyboard', nameKey: 'sound.keyboard', icon: '⌨️', isPlaying: false, file: BASE_PATH + '/sounds/keyboard.wav' },
+  { id: 'pageturn', nameKey: 'sound.pageturn', icon: '📖', isPlaying: false, file: BASE_PATH + '/sounds/page-turn.wav' },
+  { id: 'clock', nameKey: 'sound.clock', icon: '🕰️', isPlaying: false, file: BASE_PATH + '/sounds/clock.wav' },
 ]
 
 const MAX_CUSTOM_SIZE = 50 * 1024 * 1024 // 50MB per file
 
+const FADE_IN_MS = 500
+const FADE_OUT_MS = 300
+const MUTE_FADE_MS = 200
+
+const VOLUMES_KEY = 'focus-room-volumes'
+const MASTER_KEY = 'focus-room-ambient-master'
+
 function loadVolumes(): Record<string, number> {
   if (typeof window === 'undefined') return {}
-  return storageGet<Record<string, number>>('focus-room-volumes', {})
+  return storageGet<Record<string, number>>(VOLUMES_KEY, {})
 }
 
 function saveVolumes(volumes: Record<string, number>) {
-  storageSet('focus-room-volumes', volumes)
+  storageSet(VOLUMES_KEY, volumes)
+}
+
+function loadMaster(): number {
+  if (typeof window === 'undefined') return 100
+  const v = storageGet<number>(MASTER_KEY, 100)
+  return typeof v === 'number' && v >= 0 && v <= 100 ? v : 100
 }
 
 function getBuiltInSounds(): Sound[] {
   const savedVolumes = loadVolumes()
   return SOUND_DEFAULTS.map(s => ({
     id: s.id,
-    name: t(s.nameKey as any),
+    name: t(s.nameKey),
     icon: s.icon,
     isPlaying: s.isPlaying,
     file: s.file,
@@ -63,43 +85,30 @@ function getBuiltInSounds(): Sound[] {
   }))
 }
 
-// Fade volume over a duration. Returns a cancel function to abort the fade.
-function fadeVolume(
-  audio: HTMLAudioElement,
-  from: number,
-  to: number,
-  durationMs: number
-): { promise: Promise<void>; cancel: () => void } {
-  let cancelled = false
-  const promise = new Promise<void>((resolve) => {
-    const steps = 15
-    const intervalMs = durationMs / steps
-    const delta = (to - from) / steps
-    let step = 0
-    audio.volume = from
-
-    const timer = setInterval(() => {
-      if (cancelled) { clearInterval(timer); resolve(); return }
-      step++
-      if (step >= steps) {
-        audio.volume = to
-        clearInterval(timer)
-        resolve()
-      } else {
-        audio.volume = Math.min(1, Math.max(0, from + delta * step))
-      }
-    }, intervalMs)
-  })
-  return { promise, cancel: () => { cancelled = true } }
-}
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 
 export function AudioProvider({ children }: { children: ReactNode }) {
+  // 若 URL 带 ?mix= 分享配方，在初始化音量前先写入 localStorage
+  applyMixFromURL()
+
   const [sounds, setSounds] = useState<Sound[]>(getBuiltInSounds)
+  const [ambientMaster, setAmbientMasterState] = useState<number>(loadMaster)
+  const soundsRef = useRef(sounds)
+  const masterRef = useRef(ambientMaster)
   const audioMapRef = useRef<Map<string, HTMLAudioElement>>(new Map())
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  // Track active fade cancel functions per sound ID
-  const fadeCancelsRef = useRef<Map<string, (() => void)[]>>(new Map())
-  const [customSoundsLoaded, setCustomSoundsLoaded] = useState(false)
+  // 每个 audio 元素当前装载的文件，避免每次播放重复赋值 src 导致重新加载
+  const loadedSrcRef = useRef<Map<string, string>>(new Map())
+  // 过渡代数：每次新的播放/停止操作递增，旧淡入淡出回调发现代数不符就自行作废
+  const genRef = useRef<Map<string, number>>(new Map())
+  const fadeTimersRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map())
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    soundsRef.current = sounds
+  }, [sounds])
+  useEffect(() => {
+    masterRef.current = ambientMaster
+  }, [ambientMaster])
 
   // Load custom sounds from IndexedDB on mount
   useEffect(() => {
@@ -108,20 +117,19 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       const customs: Sound[] = stored.map(s => ({
         id: s.id,
         name: s.name,
-        icon: '\u{1f3b5}',
+        icon: '🎵',
         volume: savedVolumes[s.id] ?? 50,
         isPlaying: false,
         file: s.fileUrl,
         isCustom: true,
       }))
       setSounds(prev => [...prev, ...customs])
-      setCustomSoundsLoaded(true)
-    }).catch(() => {
-      setCustomSoundsLoaded(true)
-    })
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {
+    const timers = fadeTimersRef.current
+    const audioMap = audioMapRef.current
     return () => {
       // Flush pending volume save before cleanup (e.g. on page refresh)
       if (saveTimeoutRef.current) {
@@ -130,11 +138,10 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         soundsRef.current.forEach(s => { volumes[s.id] = s.volume })
         saveVolumes(volumes)
       }
-      // Cancel all active fades
-      fadeCancelsRef.current.forEach(cancels => cancels.forEach(cancel => cancel()))
-      fadeCancelsRef.current.clear()
-      audioMapRef.current.forEach(a => { a.pause(); a.src = '' })
-      audioMapRef.current.clear()
+      timers.forEach(timer => clearInterval(timer))
+      timers.clear()
+      audioMap.forEach(a => { a.pause(); a.src = '' })
+      audioMap.clear()
     }
   }, [])
 
@@ -143,82 +150,72 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (!audio) {
       audio = new Audio()
       audio.loop = true
-      audio.volume = sound.volume / 100
+      audio.volume = clamp01((sound.volume / 100) * (masterRef.current / 100))
       audio.preload = 'none'
       audioMapRef.current.set(sound.id, audio)
     }
     return audio
   }, [])
 
-  // Load a sound's src only when first played, then set preload to auto
-  const ensureLoaded = useCallback((audio: HTMLAudioElement, file: string) => {
+  // 只在文件变化时才赋值 src，避免每次播放都重新 load / 从头开始
+  const ensureLoaded = useCallback((id: string, audio: HTMLAudioElement, file: string) => {
     if (!file) return
-    // Only set src if not already loaded with the correct file
-    const currentSrc = audio.src || ''
-    if (!currentSrc || currentSrc === 'about:blank' || !currentSrc.startsWith('blob:')) {
-      audio.src = file
-      audio.preload = 'auto'
-    }
+    if (loadedSrcRef.current.get(id) === file) return
+    audio.src = file
+    audio.preload = 'auto'
+    loadedSrcRef.current.set(id, file)
   }, [])
 
-  // Cancel any active fades for a given sound ID
-  const cancelFades = useCallback((id: string) => {
-    const cancels = fadeCancelsRef.current.get(id)
-    if (cancels) { cancels.forEach(c => c()); fadeCancelsRef.current.delete(id) }
+  // 计算某音效的实际可听音量（滑块 × 环境音母线）
+  const effectiveVolume = useCallback((s: Sound) => {
+    return clamp01((s.volume / 100) * (masterRef.current / 100))
   }, [])
 
-  const registerFade = useCallback((id: string, cancel: () => void) => {
-    const existing = fadeCancelsRef.current.get(id) || []
-    existing.push(cancel)
-    fadeCancelsRef.current.set(id, existing)
-  }, [])
+  /**
+   * 启动一次音量渐变（moodist 的 token 模式）。
+   * 同一音效的新过渡会使旧过渡立即失效——旧回调不会 pause 新启动的声音。
+   */
+  const startFade = useCallback((
+    id: string,
+    audio: HTMLAudioElement,
+    from: number,
+    to: number,
+    durationMs: number,
+    onDone?: () => void
+  ) => {
+    const prevTimer = fadeTimersRef.current.get(id)
+    if (prevTimer) clearInterval(prevTimer)
+    const gen = (genRef.current.get(id) ?? 0) + 1
+    genRef.current.set(id, gen)
 
-  const toggleSound = useCallback((id: string) => {
-    // Cancel any in-progress fade for this sound
-    cancelFades(id)
+    const steps = 15
+    const intervalMs = Math.max(16, Math.round(durationMs / steps))
+    audio.volume = clamp01(from)
+    let step = 0
 
-    setSounds(prev => prev.map(s => {
-      if (s.id !== id) return s
-      const audio = getAudio(s)
-
-      if (!s.isPlaying) {
-        const needLoad = !audio.src || audio.src === 'about:blank' || audio.readyState < 2
-        ensureLoaded(audio, s.file)
-        const targetVol = s.volume / 100
-        audio.volume = 0
-
-        const doPlay = () => {
-          audio.play().then(() => {
-            console.log('Audio playing:', s.name)
-          }).catch(err => {
-            console.error('Audio play failed:', s.name, err.message)
-          })
-        }
-
-        if (needLoad) {
-          audio.oncanplay = () => { audio.oncanplay = null; doPlay() }
-          audio.load()
-        } else {
-          doPlay()
-        }
-
-        const { cancel } = fadeVolume(audio, 0, targetVol, 500)
-        registerFade(id, cancel)
-        return { ...s, isPlaying: true }
-      } else {
-        const currentVol = audio.volume
-        const { promise, cancel } = fadeVolume(audio, currentVol, 0, 300)
-        registerFade(id, cancel)
-        promise.then(() => { audio.pause(); audio.currentTime = 0 })
-        return { ...s, isPlaying: false }
+    const timer = setInterval(() => {
+      if (genRef.current.get(id) !== gen) {
+        clearInterval(timer)
+        fadeTimersRef.current.delete(id)
+        return
       }
-    }))
-  }, [getAudio, cancelFades, registerFade])
+      step++
+      audio.volume = clamp01(step >= steps ? to : from + (to - from) * (step / steps))
+      if (step >= steps) {
+        clearInterval(timer)
+        fadeTimersRef.current.delete(id)
+        onDone?.()
+      }
+    }, intervalMs)
+    fadeTimersRef.current.set(id, timer)
+  }, [])
 
-  const soundsRef = useRef(sounds)
-  soundsRef.current = sounds
+  const stopAndReset = useCallback((audio: HTMLAudioElement) => {
+    audio.pause()
+    audio.currentTime = 0
+  }, [])
 
-  const debouncedSaveVolumes = useCallback(() => {
+  const persistVolumes = useCallback(() => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     saveTimeoutRef.current = setTimeout(() => {
       const volumes: Record<string, number> = {}
@@ -227,50 +224,131 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }, 300)
   }, [])
 
-  const setVolume = useCallback((id: string, volume: number) => {
-    setSounds(prev => {
-      return prev.map(s => {
-        if (s.id !== id) return s
-        const audio = audioMapRef.current.get(id)
-        if (audio) audio.volume = volume / 100
-        return { ...s, volume }
+  const toggleSound = useCallback((id: string) => {
+    const s = soundsRef.current.find(x => x.id === id)
+    if (!s) return
+    const audio = getAudio(s)
+    const nextPlaying = !s.isPlaying
+
+    if (nextPlaying) {
+      ensureLoaded(id, audio, s.file)
+      const target = effectiveVolume(s)
+      audio.play().catch(err => {
+        console.warn('Audio play failed:', s.name, err.message)
       })
+      startFade(id, audio, audio.volume, target, FADE_IN_MS)
+    } else {
+      startFade(id, audio, audio.volume, 0, FADE_OUT_MS, () => stopAndReset(audio))
+    }
+
+    // 立即同步 ref：快速连续点击时函数式 setState 要到下一次渲染才反映
+    soundsRef.current = soundsRef.current.map(x => (x.id === id ? { ...x, isPlaying: nextPlaying } : x))
+    setSounds(prev => prev.map(x => (x.id === id ? { ...x, isPlaying: nextPlaying } : x)))
+  }, [getAudio, ensureLoaded, effectiveVolume, startFade, stopAndReset])
+
+  const setVolume = useCallback((id: string, volume: number) => {
+    // 拖动滑块是显式操作：作废进行中的淡入淡出并立即生效
+    genRef.current.set(id, (genRef.current.get(id) ?? 0) + 1)
+    const prevTimer = fadeTimersRef.current.get(id)
+    if (prevTimer) { clearInterval(prevTimer); fadeTimersRef.current.delete(id) }
+
+    const apply = (s: Sound) => {
+      if (s.id !== id) return s
+      const audio = audioMapRef.current.get(id)
+      if (audio) {
+        if (s.isPlaying) audio.volume = clamp01((volume / 100) * (masterRef.current / 100))
+        else audio.volume = clamp01(volume / 100)
+      }
+      return { ...s, volume }
+    }
+    soundsRef.current = soundsRef.current.map(apply)
+    setSounds(prev => prev.map(apply))
+    persistVolumes()
+  }, [persistVolumes])
+
+  const applyMasterToPlaying = useCallback(() => {
+    soundsRef.current.forEach(s => {
+      if (!s.isPlaying) return
+      const audio = audioMapRef.current.get(s.id)
+      if (audio) audio.volume = clamp01((s.volume / 100) * (masterRef.current / 100))
     })
-    debouncedSaveVolumes()
-  }, [debouncedSaveVolumes])
+  }, [])
+
+  const setAmbientMaster = useCallback((volume: number) => {
+    const v = Math.min(100, Math.max(0, volume))
+    storageSet(MASTER_KEY, v)
+    setAmbientMasterState(v)
+    masterRef.current = v
+    applyMasterToPlaying()
+  }, [applyMasterToPlaying])
+
+  const applyMix = useCallback((volumes: Record<string, number>) => {
+    const normalized: Record<string, number> = {}
+    Object.entries(volumes).forEach(([k, v]) => {
+      if (typeof v === 'number' && isFinite(v)) normalized[k] = Math.min(100, Math.max(0, v))
+    })
+
+    soundsRef.current.forEach(s => {
+      const target = normalized[s.id]
+      if (target === undefined || target <= 0) {
+        // 配方之外的音：停掉，但保留用户原本保存的滑块音量
+        if (s.isPlaying) {
+          const audio = audioMapRef.current.get(s.id)
+          if (audio) startFade(s.id, audio, audio.volume, 0, FADE_OUT_MS, () => stopAndReset(audio))
+        }
+        return
+      }
+      const audible = clamp01((target / 100) * (masterRef.current / 100))
+      if (!s.isPlaying) {
+        const audio = getAudio(s)
+        ensureLoaded(s.id, audio, s.file)
+        audio.play().catch(() => {})
+        startFade(s.id, audio, 0, audible, FADE_IN_MS)
+      } else {
+        const audio = audioMapRef.current.get(s.id)
+        if (audio) audio.volume = audible
+      }
+    })
+
+    // 持久化：混音里的音用配方音量，其余音保留原值
+    const merged: Record<string, number> = {}
+    soundsRef.current.forEach(s => { merged[s.id] = s.volume })
+    Object.assign(merged, normalized)
+    saveVolumes(merged)
+
+    const apply = (s: Sound) => {
+      const target = normalized[s.id]
+      if (target === undefined || target <= 0) return { ...s, isPlaying: false }
+      return { ...s, volume: Math.min(100, Math.max(0, target)), isPlaying: true }
+    }
+    soundsRef.current = soundsRef.current.map(apply)
+    setSounds(prev => prev.map(apply))
+  }, [getAudio, ensureLoaded, startFade, stopAndReset])
 
   const muteAll = useCallback(() => {
-    setSounds(prev => prev.map(s => {
-      if (s.isPlaying) {
-        cancelFades(s.id)
-        const audio = audioMapRef.current.get(s.id)
-        if (audio) {
-          const currentVol = audio.volume
-          const { promise, cancel } = fadeVolume(audio, currentVol, 0, 200)
-          registerFade(s.id, cancel)
-          promise.then(() => { audio.pause(); audio.currentTime = 0 })
-        }
-      }
-      return { ...s, isPlaying: false }
-    }))
-  }, [cancelFades, registerFade])
+    soundsRef.current.forEach(s => {
+      if (!s.isPlaying) return
+      const audio = audioMapRef.current.get(s.id)
+      if (audio) startFade(s.id, audio, audio.volume, 0, MUTE_FADE_MS, () => stopAndReset(audio))
+    })
+    const apply = (s: Sound) => (s.isPlaying ? { ...s, isPlaying: false } : s)
+    soundsRef.current = soundsRef.current.map(apply)
+    setSounds(prev => prev.map(apply))
+  }, [startFade, stopAndReset])
 
   const unmuteAll = useCallback(() => {
-    setSounds(prev => prev.map(s => {
-      if (!s.isPlaying && s.volume > 0) {
-        cancelFades(s.id)
-        const audio = getAudio(s)
-        ensureLoaded(audio, s.file)
-        const targetVol = s.volume / 100
-        audio.volume = 0
-        audio.play().catch(() => {})
-        const { cancel } = fadeVolume(audio, 0, targetVol, 500)
-        registerFade(s.id, cancel)
-        return { ...s, isPlaying: true }
-      }
-      return s
-    }))
-  }, [getAudio, cancelFades, registerFade])
+    soundsRef.current.forEach(s => {
+      if (s.isPlaying || s.volume <= 0) return
+      const audio = getAudio(s)
+      ensureLoaded(s.id, audio, s.file)
+      const target = effectiveVolume(s)
+      audio.play().catch(() => {})
+      startFade(s.id, audio, audio.volume, target, FADE_IN_MS)
+    })
+    const apply = (s: Sound) => (!s.isPlaying && s.volume > 0 ? { ...s, isPlaying: true } : s)
+    soundsRef.current = soundsRef.current.map(apply)
+    setSounds(prev => prev.map(apply))
+  }, [getAudio, ensureLoaded, effectiveVolume, startFade])
 
   const addCustomSound = useCallback(async (name: string, file: File): Promise<boolean> => {
     // Validate individual file size
@@ -288,7 +366,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const newSound: Sound = {
       id,
       name,
-      icon: '\u{1f3b5}',
+      icon: '🎵',
       volume: 50,
       isPlaying: false,
       file: fileUrl,
@@ -300,7 +378,10 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const removeCustomSound = useCallback((id: string) => {
-    cancelFades(id)
+    const prevTimer = fadeTimersRef.current.get(id)
+    if (prevTimer) { clearInterval(prevTimer); fadeTimersRef.current.delete(id) }
+    genRef.current.delete(id)
+    loadedSrcRef.current.delete(id)
     const audio = audioMapRef.current.get(id)
     if (audio) {
       audio.pause()
@@ -312,10 +393,21 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
     // Delete from IndexedDB
     deleteCustomSound(id).catch(() => {})
-  }, [cancelFades])
+  }, [])
 
   return (
-    <AudioContext.Provider value={{ sounds, toggleSound, setVolume, muteAll, unmuteAll, addCustomSound, removeCustomSound }}>
+    <AudioContext.Provider value={{
+      sounds,
+      ambientMaster,
+      toggleSound,
+      setVolume,
+      setAmbientMaster,
+      applyMix,
+      muteAll,
+      unmuteAll,
+      addCustomSound,
+      removeCustomSound,
+    }}>
       {children}
     </AudioContext.Provider>
   )

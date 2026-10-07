@@ -5,11 +5,18 @@ import { useTimer, TimerMode, TimerSettings } from '@/hooks/useTimer'
 import Notification from './Notification'
 import { t } from '@/lib/i18n'
 
-const MODES: { key: TimerMode; labelKey: string }[] = [
+const MODES: { key: TimerMode; labelKey: 'timer.pomodoro' | 'timer.stopwatch' | 'timer.countdown' }[] = [
   { key: 'pomodoro', labelKey: 'timer.pomodoro' },
   { key: 'stopwatch', labelKey: 'timer.stopwatch' },
   { key: 'countdown', labelKey: 'timer.countdown' },
 ]
+
+export interface TickInfo {
+  displayTime: string
+  isRunning: boolean
+  mode: TimerMode
+  phase: 'work' | 'break' | 'longBreak'
+}
 
 interface Props {
   onActionsReady?: (actions: {
@@ -20,9 +27,25 @@ interface Props {
   }) => void
   onStudySecondsChange?: (seconds: number) => void
   onPomodoroComplete?: () => void
+  onRunningChange?: (running: boolean) => void
+  /** Zen 时钟需要计时数据；仅在清屏模式开启，避免常驻每秒渲染 */
+  reportTick?: boolean
+  onTickInfo?: (info: TickInfo) => void
+  /** 极简胶囊态 */
+  collapsed?: boolean
+  onToggleCollapse?: () => void
 }
 
-export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoroComplete }: Props) {
+export default function Timer({
+  onActionsReady,
+  onStudySecondsChange,
+  onPomodoroComplete,
+  onRunningChange,
+  reportTick,
+  onTickInfo,
+  collapsed = false,
+  onToggleCollapse,
+}: Props) {
   const timer = useTimer()
   const lastNotifiedRef = useRef(timer.totalStudySeconds)
 
@@ -50,12 +73,13 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
     }
   }, [timer.totalStudySeconds, onStudySecondsChange])
 
+  const clearNotify = timer.clearNotify
   useEffect(() => {
     if (timer.notify) {
-      const t = setTimeout(() => timer.clearNotify(), 1000)
+      const t = setTimeout(() => clearNotify(), 1000)
       return () => clearTimeout(t)
     }
-  }, [timer.notify, timer.clearNotify])
+  }, [timer.notify, clearNotify])
 
   // Fire callback when a pomodoro completes (work phase ends)
   const prevCompletedRef = useRef(timer.completedPomodoros)
@@ -66,6 +90,22 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
     prevCompletedRef.current = timer.completedPomodoros
   }, [timer.completedPomodoros, onPomodoroComplete])
 
+  // 上报运行状态（用于 WakeLock 自动常亮）
+  useEffect(() => {
+    onRunningChange?.(timer.isRunning)
+  }, [timer.isRunning, onRunningChange])
+
+  // 上报每秒计时信息（仅清屏模式 Zen 时钟需要时才启用）
+  useEffect(() => {
+    if (!reportTick) return
+    onTickInfo?.({
+      displayTime: timer.displayTime,
+      isRunning: timer.isRunning,
+      mode: timer.mode,
+      phase: timer.pomodoroPhase,
+    })
+  }, [reportTick, onTickInfo, timer.displayTime, timer.isRunning, timer.mode, timer.pomodoroPhase])
+
   // Page title countdown: show remaining time when timer is running
   useEffect(() => {
     if (timer.isRunning && (timer.mode === 'pomodoro' || timer.mode === 'countdown')) {
@@ -74,6 +114,68 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
       document.title = t('timer.pageTitle')
     }
   }, [timer.displayTime, timer.isRunning, timer.mode])
+
+  if (collapsed) {
+    return (
+      <>
+        <Notification trigger={timer.notify} />
+        <div
+          onClick={onToggleCollapse}
+          className="aura-capsule inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full cursor-pointer hover:border-white/30 transition-all duration-200 group select-none shadow-lg backdrop-blur-md"
+          title={t('timer.expand')}
+        >
+          {/* Phase indicator & Mode */}
+          <span className="text-sm">
+            {timer.mode === 'pomodoro'
+              ? (timer.pomodoroPhase === 'work' ? '🍅' : timer.pomodoroPhase === 'longBreak' ? '🌿' : '☕')
+              : timer.mode === 'countdown' ? '⏳' : '⏱️'}
+          </span>
+          <span className="font-timer text-white font-medium tracking-wider text-sm drop-shadow">
+            {timer.displayTime}
+          </span>
+
+          {/* Quick Play/Pause */}
+          <button
+            onClick={(e) => { e.stopPropagation(); timer.toggle() }}
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-150 active:scale-90 ${
+              timer.isRunning ? 'bg-white/15 text-white/90 hover:bg-white/25' : 'bg-white/25 text-white hover:bg-white/35'
+            }`}
+            aria-label={timer.isRunning ? 'Pause' : 'Start'}
+          >
+            {timer.isRunning ? (
+              <svg width="8" height="8" viewBox="0 0 18 18" fill="currentColor">
+                <rect x="3" y="2" width="4" height="14" rx="1" />
+                <rect x="11" y="2" width="4" height="14" rx="1" />
+              </svg>
+            ) : (
+              <svg width="8" height="8" viewBox="0 0 18 18" fill="currentColor">
+                <path d="M4 2.5v13a1 1 0 001.5.866l11-6.5a1 1 0 000-1.732l-11-6.5A1 1 0 004 2.5z" />
+              </svg>
+            )}
+          </button>
+
+          {/* Skip Break button if on break */}
+          {timer.mode === 'pomodoro' && timer.pomodoroPhase !== 'work' && (
+            <button
+              onClick={(e) => { e.stopPropagation(); timer.skipBreak() }}
+              className="w-6 h-6 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 text-white/70 active:scale-90 transition-all"
+              title={t('timer.skipBreak')}
+            >
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5,4 15,12 5,20" />
+                <rect x="17" y="4" width="3" height="16" rx="1" />
+              </svg>
+            </button>
+          )}
+
+          {/* Expand icon */}
+          <span className="text-white/40 group-hover:text-white/80 transition-colors text-xs px-0.5">
+            ↕
+          </span>
+        </div>
+      </>
+    )
+  }
 
   return (
     <>
@@ -91,7 +193,7 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
                   : 'text-white/65 hover:text-white/90'
               }`}
             >
-              {t(m.labelKey as any)}
+              {t(m.labelKey)}
             </button>
           ))}
         </div>
@@ -165,6 +267,20 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
           </button>
         </div>
 
+        {/* 跳过休息 */}
+        {timer.mode === 'pomodoro' && timer.pomodoroPhase !== 'work' && (
+          <button
+            onClick={timer.skipBreak}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-white/55 bg-white/[0.06] hover:bg-white/[0.12] hover:text-white/85 transition-all duration-200 active:scale-95"
+          >
+            {t('timer.skipBreak')}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5,4 15,12 5,20" />
+              <rect x="17" y="4" width="3" height="16" rx="1" />
+            </svg>
+          </button>
+        )}
+
         {/* 时长选择 */}
         {timer.mode === 'pomodoro' && !timer.isRunning && (
           <div className="flex gap-1.5">
@@ -207,6 +323,35 @@ export default function Timer({ onActionsReady, onStudySecondsChange, onPomodoro
           {t('timer.todayStudy')} {timer.studyTime}
         </div>
       </div>
+
+      {/* 后台超过 10 分钟返回询问弹窗 */}
+      {timer.backgroundPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={e => e.stopPropagation()}>
+          <div className="glass-strong rounded-2xl p-6 max-w-xs w-full animate-scale-in text-center shadow-2xl border border-white/15">
+            <div className="text-3xl mb-2">⏳</div>
+            <h3 className="text-sm font-semibold text-white mb-2">
+              {t('timer.bgPromptTitle')}
+            </h3>
+            <p className="text-xs text-white/60 leading-relaxed mb-5">
+              {t('timer.bgPromptDesc').replace('{min}', String(Math.floor(timer.backgroundPrompt.elapsedSeconds / 60)))}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => timer.resolveBackgroundPrompt(false)}
+                className="flex-1 py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-white/70 text-xs font-medium transition-all active:scale-95"
+              >
+                {t('timer.bgPromptDiscard')}
+              </button>
+              <button
+                onClick={() => timer.resolveBackgroundPrompt(true)}
+                className="flex-1 py-2.5 rounded-xl bg-white/[0.22] hover:bg-white/[0.3] text-white text-xs font-medium transition-all active:scale-95 shadow-md"
+              >
+                {t('timer.bgPromptResume')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

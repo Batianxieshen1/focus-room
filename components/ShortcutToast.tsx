@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { t } from '@/lib/i18n'
+import { t, TranslationKey } from '@/lib/i18n'
+import { storageGet, storageSet } from '@/lib/storage'
 
 const STORAGE_KEY = 'focus-room-shortcut-seen'
 
-const SHORTCUTS = [
+const SHORTCUTS: { key: string; labelKey: TranslationKey }[] = [
   { key: 'Space', labelKey: 'shortcut.startPause' },
   { key: 'R', labelKey: 'shortcut.reset' },
   { key: '1-3', labelKey: 'shortcut.switchMode' },
@@ -17,14 +18,12 @@ export default function ShortcutToast() {
   const [fading, setFading] = useState(false)
 
   useEffect(() => {
-    try {
-      const seen = localStorage.getItem(STORAGE_KEY)
-      if (!seen) {
-        // Show after a short delay so user can see the page first
-        const showTimer = setTimeout(() => setVisible(true), 1500)
-        return () => clearTimeout(showTimer)
-      }
-    } catch {}
+    const seen = storageGet<string | null>(STORAGE_KEY, null)
+    if (!seen) {
+      // Show after a short delay so user can see the page first
+      const showTimer = setTimeout(() => setVisible(true), 1500)
+      return () => clearTimeout(showTimer)
+    }
   }, [])
 
   useEffect(() => {
@@ -36,7 +35,7 @@ export default function ShortcutToast() {
     // Remove from DOM after fade animation
     const removeTimer = setTimeout(() => {
       setVisible(false)
-      try { localStorage.setItem(STORAGE_KEY, '1') } catch {}
+      storageSet(STORAGE_KEY, '1')
     }, 5400)
     return () => {
       clearTimeout(fadeTimer)
@@ -48,7 +47,7 @@ export default function ShortcutToast() {
     setFading(true)
     setTimeout(() => {
       setVisible(false)
-      try { localStorage.setItem(STORAGE_KEY, '1') } catch {}
+      storageSet(STORAGE_KEY, '1')
     }, 400)
   }
 
@@ -56,7 +55,7 @@ export default function ShortcutToast() {
 
   return (
     <div
-      className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 glass-strong rounded-xl px-5 py-3 flex items-center gap-4 text-xs text-white/75 ${
+      className={`fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-30 aura-capsule rounded-full px-4 py-2 flex items-center gap-3 text-xs text-white/80 shadow-2xl ${
         fading ? 'animate-toast-out' : 'animate-toast-in'
       }`}
     >
@@ -66,7 +65,7 @@ export default function ShortcutToast() {
           <kbd className="px-1.5 py-0.5 rounded bg-white/[0.1] text-white/80 font-mono text-[10px]">
             {s.key}
           </kbd>
-          <span className="text-white/50">{t(s.labelKey as any)}</span>
+          <span className="text-white/50">{t(s.labelKey)}</span>
         </div>
       ))}
       <button

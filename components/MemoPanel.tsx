@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { t } from '@/lib/i18n'
+import { storageGet, storageSet } from '@/lib/storage'
 
 interface Props {
   onClose: () => void
@@ -19,30 +20,18 @@ type Filter = 'all' | 'active' | 'done'
 const STORAGE_KEY = 'focus-room-memo'
 
 function loadTodos(): Todo[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch {}
-  return []
+  return storageGet<Todo[]>(STORAGE_KEY, [])
 }
 
 function saveTodos(todos: Todo[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
-  } catch {}
+  storageSet(STORAGE_KEY, todos)
 }
 
 export default function MemoPanel({ onClose }: Props) {
-  const [todos, setTodos] = useState<Todo[]>([])
+  const [todos, setTodos] = useState<Todo[]>(() => (typeof window !== 'undefined' ? loadTodos() : []))
   const [input, setInput] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const inputRef = useRef<HTMLInputElement>(null)
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    setTodos(loadTodos())
-  }, [])
 
   // Persist on every change
   useEffect(() => {

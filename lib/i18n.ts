@@ -1,5 +1,8 @@
 'use client'
 
+import { useSyncExternalStore, useCallback } from 'react'
+import { storageGet, storageSet } from './storage'
+
 export type Locale = 'zh' | 'en'
 
 const translations = {
@@ -53,9 +56,6 @@ const translations = {
     'settings.language': '语言',
     'settings.chinese': '中文',
     'settings.english': 'English',
-    'settings.theme': '主题',
-    'settings.dark': '深色',
-    'settings.light': '浅色',
 
     // Daily goal
     'goal.title': '每日目标',
@@ -129,6 +129,16 @@ const translations = {
     'timer.pomodoroCount': '个番茄',
     'timer.todayStudy': '今日已学习',
     'timer.pageTitle': 'Focus Room | 沉浸式自习室',
+    'timer.bgPromptTitle': '离开时间较长',
+    'timer.bgPromptDesc': '检测到离开后台 {min} 分钟，是否将这段时间计入本次学习？',
+    'timer.bgPromptResume': '继续计时（计入时间）',
+    'timer.bgPromptDiscard': '结束本次（不计入）',
+    'timer.collapse': '折叠为胶囊',
+    'timer.expand': '展开仪表盘',
+    'sound.drawerTitle': '声音工作台',
+    'sound.tabs.ambient': '白噪音',
+    'sound.tabs.music': '自习电台',
+    'sound.tabs.presets': '混音配方',
 
     // Focus completion report
     'report.title': '🍅 专注完成！',
@@ -273,6 +283,12 @@ const translations = {
     'scene.cityNightDesc': '远处的灯火像星星一样闪烁，城市的节奏在窗外流淌。',
     'scene.starryTentName': '星空帐篷',
     'scene.starryTentDesc': '帐篷外是银河，帐篷内是温暖的角落。天地之间只有你。',
+    'scene.studyDeskName': '雨夜人间',
+    'scene.studyDeskDesc': '雨幕里对楼的灯火次第亮起，你在窗前苦读，人间烟火与你隔雨相望。',
+    'scene.milkyWayName': '银河旷野',
+    'scene.milkyWayDesc': '远离城市的旷野上，银河横贯天际，时间在星光里静止。',
+    'scene.mountainStreamName': '山涧溪流',
+    'scene.mountainStreamDesc': '清泉漫过卵石，绿意环绕，水声带走一切浮躁。',
 
     // Scene recommendation hint
     'scene.recommendHint': '推荐搭配「{name}」白噪音',
@@ -316,6 +332,95 @@ const translations = {
     'share.pomodoros': '个番茄',
     'share.study': '分钟学习',
     'share.brand': 'Focus Room · 沉浸式自习室',
+
+    // ===== 新增音效 =====
+    'sound.keyboard': '键盘声',
+    'sound.pageturn': '翻书声',
+    'sound.clock': '钟摆滴答',
+
+    // ===== 混音预设 =====
+    'mix.title': '混音预设',
+    'mix.studyNight': '深夜书房',
+    'mix.streetCafe': '街角咖啡馆',
+    'mix.meadowBreeze': '旷野微风',
+    'mix.saveMine': '存为我的',
+    'mix.saveBtn': '保存',
+    'mix.namePlaceholder': '配方名称…',
+    'mix.defaultName': '我的配方',
+    'mix.saved': '配方已保存',
+    'mix.applied': '已应用混音配方',
+    'mix.delete': '删除配方',
+    'mix.emptyMix': '请先播放至少一个音效',
+    'mix.share': '分享',
+    'mix.shareCopied': '分享链接已复制，发给朋友吧',
+    'mix.shareFailed': '复制失败，请手动复制',
+
+    // ===== 计时器 =====
+    'timer.skipBreak': '跳过休息',
+    'timer.zenRemaining': '剩余时间',
+
+    // ===== Zen 清屏时钟 =====
+    'zen.quote1': '保持专注，世界会为你让路。',
+    'zen.quote2': '每一次专注，都是给未来的礼物。',
+    'zen.quote3': '慢慢来，反而快。',
+    'sound.radioTitle': '24/7 免版权自习电台',
+    'sound.radioDesc': '精选高质量免版权纯音乐与 Lo-Fi 电台，即开即播，永不中断',
+    'sound.neteaseVipNotice': '提示：若歌单内含较多 VIP 歌曲，建议使用「官方外链」模式',
+
+    // ===== 底栏 =====
+    'bar.masterVolume': '总音量',
+    'bar.iframeMini': '官方外链播放器',
+
+    // ===== 视觉氛围 =====
+    'atm.title': '视觉氛围',
+    'atm.brightness': '遮光',
+    'atm.blur': '背景虚化',
+    'atm.warmth': '护眼暖色',
+    'atm.reset': '恢复默认',
+
+    // ===== 设置 =====
+    'settings.wakeLock': '屏幕常亮（自习 / 平板桌搭防息屏）',
+    'settings.metingApi': 'Meting API 地址（内置播放器）',
+    'settings.metingApiHint': '内置网易云播放器的数据源。可在腾讯云开发免费部署内置云函数，方法见项目 docs/meting-deploy.md；留空则仅支持官方外链播放。',
+
+    // ===== 内置音乐播放器 =====
+    'player.modeLabel': '播放方式',
+    'player.modeOfficial': '官方外链',
+    'player.modeBuiltIn': '内置播放器',
+    'player.playlistActive': '正在播放歌单',
+    'player.backToAmbient': '返回白噪音',
+    'player.closePlayer': '关闭播放器',
+    'player.tapToExpand': '点击展开',
+    'player.needApi': '内置播放器需要先在「设置」中配置 Meting API 地址（部署方法见项目 docs/meting-deploy.md）',
+    'player.loading': '正在获取歌单…',
+    'player.loadFailed': '歌单获取失败，请检查 API 地址',
+    'player.empty': '歌单为空或不可访问',
+    'player.trackUnavailable': '该曲目暂不可用，已自动跳过',
+    'player.allFailed': '歌单内暂无可播放曲目',
+    'player.play': '播放',
+    'player.pause': '暂停',
+    'player.prev': '上一曲',
+    'player.next': '下一曲',
+
+    // ===== 音效收藏 =====
+    'sound.favOnly': '只看收藏',
+    'sound.fav': '收藏',
+    'sound.unfav': '取消收藏',
+    'sound.mixAdjust': '混音调节',
+
+    // ===== 双耳节拍 =====
+    'binaural.title': '双耳节拍',
+    'binaural.delta': '深睡 δ',
+    'binaural.theta': '冥想 θ',
+    'binaural.alpha': '放松 α',
+    'binaural.beta': '专注 β',
+    'binaural.hint': '🎧 请佩戴耳机：左右声道频率差诱导脑波同步',
+
+    // ===== 番茄预设组 =====
+    'settings.presets': '时长预设',
+    'settings.presetClassic': '经典',
+    'settings.presetDeep': '深度',
+    'settings.presetSprint': '冲刺',
   },
   en: {
     // Tab names / toolbar
@@ -367,9 +472,6 @@ const translations = {
     'settings.language': 'Language',
     'settings.chinese': '中文',
     'settings.english': 'English',
-    'settings.theme': 'Theme',
-    'settings.dark': 'Dark',
-    'settings.light': 'Light',
 
     // Daily goal
     'goal.title': 'Daily Goal',
@@ -443,6 +545,16 @@ const translations = {
     'timer.pomodoroCount': 'pomodoros',
     'timer.todayStudy': 'Today\'s study',
     'timer.pageTitle': 'Focus Room | Immersive Study',
+    'timer.bgPromptTitle': 'Away for a while',
+    'timer.bgPromptDesc': 'Detected away for {min} minutes. Keep this study time?',
+    'timer.bgPromptResume': 'Resume (keep time)',
+    'timer.bgPromptDiscard': 'End session (discard)',
+    'timer.collapse': 'Collapse to capsule',
+    'timer.expand': 'Expand dashboard',
+    'sound.drawerTitle': 'Sound Studio',
+    'sound.tabs.ambient': 'Ambient',
+    'sound.tabs.music': 'Music',
+    'sound.tabs.presets': 'Mixes',
 
     // Focus completion report
     'report.title': '🍅 Focus Complete!',
@@ -587,6 +699,12 @@ const translations = {
     'scene.cityNightDesc': 'Distant lights twinkle like stars, the city\'s rhythm flowing outside the window.',
     'scene.starryTentName': 'Stargazer Tent',
     'scene.starryTentDesc': 'The Milky Way outside, warmth inside. Just you between heaven and earth.',
+    'scene.studyDeskName': 'Rainy Nights',
+    'scene.studyDeskDesc': 'Rain streaks the glass while warm windows glow across the street — the world at arm\'s length.',
+    'scene.milkyWayName': 'Milky Way Field',
+    'scene.milkyWayDesc': 'Far from the city, the galaxy arches overhead — time stands still in starlight.',
+    'scene.mountainStreamName': 'Mountain Stream',
+    'scene.mountainStreamDesc': 'Clear water over pebbles, wrapped in green. Let the stream carry restlessness away.',
 
     // Scene recommendation hint
     'scene.recommendHint': 'Try {name} ambient sound',
@@ -630,19 +748,106 @@ const translations = {
     'share.pomodoros': 'pomodoros',
     'share.study': 'minutes studied',
     'share.brand': 'Focus Room · Immersive Study',
+
+    // ===== New sounds =====
+    'sound.keyboard': 'Keyboard',
+    'sound.pageturn': 'Page Turn',
+    'sound.clock': 'Clock Tick',
+
+    // ===== Mix presets =====
+    'mix.title': 'MIX PRESETS',
+    'mix.studyNight': 'Night Study',
+    'mix.streetCafe': 'Street Cafe',
+    'mix.meadowBreeze': 'Meadow Breeze',
+    'mix.saveMine': 'Save Mine',
+    'mix.saveBtn': 'Save',
+    'mix.namePlaceholder': 'Preset name…',
+    'mix.defaultName': 'My Mix',
+    'mix.saved': 'Preset saved',
+    'mix.applied': 'Mix preset applied',
+    'mix.delete': 'Delete preset',
+    'mix.emptyMix': 'Play at least one sound first',
+    'mix.share': 'Share',
+    'mix.shareCopied': 'Share link copied',
+    'mix.shareFailed': 'Copy failed',
+
+    // ===== Timer =====
+    'timer.skipBreak': 'Skip Break',
+    'timer.zenRemaining': 'Time Remaining',
+
+    // ===== Zen clock =====
+    'zen.quote1': 'Stay focused, and the world makes way.',
+    'zen.quote2': 'Every focused hour is a gift to your future self.',
+    'zen.quote3': 'Slow is smooth, smooth is fast.',
+    'sound.radioTitle': '24/7 Royalty-Free Study Radio',
+    'sound.radioDesc': 'Curated high-fidelity Lo-Fi & ambient radio streams. Instant play, zero interruption.',
+    'sound.neteaseVipNotice': 'Note: If the playlist contains VIP tracks, Official Embed mode is recommended.',
+
+    // ===== Bottom bar =====
+    'bar.masterVolume': 'Master Volume',
+    'bar.iframeMini': 'Official player running',
+
+    // ===== Atmosphere =====
+    'atm.title': 'ATMOSPHERE',
+    'atm.brightness': 'Dimmer',
+    'atm.blur': 'Blur',
+    'atm.warmth': 'Warmth',
+    'atm.reset': 'Reset',
+
+    // ===== Settings =====
+    'settings.wakeLock': 'Keep screen awake (study / tablet desk mode)',
+    'settings.metingApi': 'Meting API URL (built-in player)',
+    'settings.metingApiHint': 'Data source for the built-in NetEase player. Deploy the bundled zero-dependency cloud function to Tencent CloudBase for free — see docs/meting-deploy.md. Leave empty to use the official embed player only.',
+
+    // ===== Built-in music player =====
+    'player.modeLabel': 'Player',
+    'player.modeOfficial': 'Official',
+    'player.modeBuiltIn': 'Built-in',
+    'player.playlistActive': 'Playlist active',
+    'player.backToAmbient': 'Back to ambient',
+    'player.closePlayer': 'Close player',
+    'player.tapToExpand': 'Tap to expand',
+    'player.needApi': 'Configure the Meting API URL in Settings first (see docs/meting-deploy.md)',
+    'player.loading': 'Loading playlist…',
+    'player.loadFailed': 'Failed to load playlist, check the API URL',
+    'player.empty': 'Playlist is empty or inaccessible',
+    'player.trackUnavailable': 'Track unavailable, skipped',
+    'player.allFailed': 'No playable tracks in this playlist',
+    'player.play': 'Play',
+    'player.pause': 'Pause',
+    'player.prev': 'Previous',
+    'player.next': 'Next',
+
+    // ===== Sound favorites =====
+    'sound.favOnly': 'Favorites',
+    'sound.fav': 'Favorite',
+    'sound.unfav': 'Unfavorite',
+    'sound.mixAdjust': 'Mix Levels',
+
+    // ===== Binaural beats =====
+    'binaural.title': 'Binaural Beats',
+    'binaural.delta': 'Delta δ',
+    'binaural.theta': 'Theta θ',
+    'binaural.alpha': 'Alpha α',
+    'binaural.beta': 'Beta β',
+    'binaural.hint': '🎧 Wear headphones — the frequency gap between ears entrains brainwaves',
+
+    // ===== Pomodoro presets =====
+    'settings.presets': 'Duration Presets',
+    'settings.presetClassic': 'Classic',
+    'settings.presetDeep': 'Deep',
+    'settings.presetSprint': 'Sprint',
   },
 } as const
 
-type TranslationKey = keyof typeof translations.zh
+export type TranslationKey = keyof typeof translations.zh
 
 let currentLocale: Locale = 'zh'
+const listeners = new Set<() => void>()
 
 function getSavedLocale(): Locale {
-  if (typeof window === 'undefined') return 'zh'
-  try {
-    const saved = localStorage.getItem('focus-room-locale')
-    if (saved === 'zh' || saved === 'en') return saved
-  } catch {}
+  const saved = storageGet<string>('focus-room-locale', 'zh')
+  if (saved === 'zh' || saved === 'en') return saved
   return 'zh'
 }
 
@@ -651,14 +856,25 @@ export function initLocale() {
 }
 
 export function getLocale(): Locale {
+  if (typeof window !== 'undefined' && currentLocale === 'zh') {
+    currentLocale = getSavedLocale()
+  }
   return currentLocale
 }
 
+export function subscribeLocale(callback: () => void) {
+  listeners.add(callback)
+  return () => {
+    listeners.delete(callback)
+  }
+}
+
 export function setLocale(locale: Locale) {
-  currentLocale = locale
-  try {
-    localStorage.setItem('focus-room-locale', locale)
-  } catch {}
+  if (currentLocale !== locale) {
+    currentLocale = locale
+    storageSet('focus-room-locale', locale)
+    listeners.forEach(fn => fn())
+  }
 }
 
 export function t(key: TranslationKey, fallback?: string): string {
@@ -666,5 +882,14 @@ export function t(key: TranslationKey, fallback?: string): string {
 }
 
 export function useTranslation() {
-  return { t, getLocale, setLocale }
+  const locale = useSyncExternalStore<Locale>(subscribeLocale, getLocale, () => 'zh')
+  const translate = useCallback((key: TranslationKey, fallback?: string): string => {
+    return translations[locale][key] || translations['zh'][key] || fallback || key
+  }, [locale])
+
+  return {
+    t: translate,
+    locale,
+    setLocale,
+  }
 }

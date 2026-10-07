@@ -1,6 +1,6 @@
 'use client'
 
-import { t } from '@/lib/i18n'
+import { t, TranslationKey } from '@/lib/i18n'
 
 export interface Scene {
   id: string
@@ -9,7 +9,7 @@ export interface Scene {
   icon: string
 }
 
-const SCENE_KEYS: Array<{ id: string; nameKey: string; descKey: string; icon: string }> = [
+const SCENE_KEYS: Array<{ id: string; nameKey: TranslationKey; descKey: TranslationKey; icon: string }> = [
   { id: 'mountain-lake', nameKey: 'scene.mountainLakeName', descKey: 'scene.mountainLakeDesc', icon: '🏔' },
   { id: 'seaside', nameKey: 'scene.seasideName', descKey: 'scene.seasideDesc', icon: '🌊' },
   { id: 'forest', nameKey: 'scene.forestName', descKey: 'scene.forestDesc', icon: '🌲' },
@@ -19,14 +19,17 @@ const SCENE_KEYS: Array<{ id: string; nameKey: string; descKey: string; icon: st
   { id: 'campfire', nameKey: 'scene.campfireName', descKey: 'scene.campfireDesc', icon: '🔥' },
   { id: 'city-night', nameKey: 'scene.cityNightName', descKey: 'scene.cityNightDesc', icon: '🌙' },
   { id: 'starry-tent', nameKey: 'scene.starryTentName', descKey: 'scene.starryTentDesc', icon: '⛺' },
+  { id: 'study-desk', nameKey: 'scene.studyDeskName', descKey: 'scene.studyDeskDesc', icon: '🏮' },
+  { id: 'milky-way', nameKey: 'scene.milkyWayName', descKey: 'scene.milkyWayDesc', icon: '🔭' },
+  { id: 'mountain-stream', nameKey: 'scene.mountainStreamName', descKey: 'scene.mountainStreamDesc', icon: '🏞️' },
 ]
 
 // Derived from i18n keys -- updated on each render so locale changes are reflected
 export function getScenes(): Scene[] {
   return SCENE_KEYS.map(s => ({
     id: s.id,
-    name: t(s.nameKey as any),
-    description: t(s.descKey as any),
+    name: t(s.nameKey),
+    description: t(s.descKey),
     icon: s.icon,
   }))
 }
@@ -50,10 +53,13 @@ export const SCENE_GRADIENTS: Record<string, string> = {
   'campfire': 'linear-gradient(135deg, #3a1a0a 0%, #6a3a1a 40%, #4a2a0a 100%)',
   'city-night': 'linear-gradient(135deg, #0a0a2a 0%, #2a1a4a 40%, #1a1a3a 100%)',
   'starry-tent': 'linear-gradient(135deg, #050510 0%, #0a0a1a 40%, #030308 100%)',
+  'study-desk': 'linear-gradient(135deg, #1a1208 0%, #3a2a12 40%, #241a0a 100%)',
+  'milky-way': 'linear-gradient(135deg, #06071a 0%, #14183a 40%, #0a0c22 100%)',
+  'mountain-stream': 'linear-gradient(135deg, #0a2018 0%, #1a3a2c 40%, #102a20 100%)',
 }
 
 // 场景与推荐声音的映射 (soundName keys reference i18n sound.* keys)
-export const SCENE_SOUND_MAP: Record<string, { soundId: string; soundNameKey: string }> = {
+export const SCENE_SOUND_MAP: Record<string, { soundId: string; soundNameKey: TranslationKey }> = {
   'mountain-lake': { soundId: 'wind', soundNameKey: 'sound.wind' },
   'seaside': { soundId: 'ocean', soundNameKey: 'sound.ocean' },
   'forest': { soundId: 'forest', soundNameKey: 'sound.forest' },
@@ -63,6 +69,9 @@ export const SCENE_SOUND_MAP: Record<string, { soundId: string; soundNameKey: st
   'campfire': { soundId: 'fire', soundNameKey: 'sound.fire' },
   'city-night': { soundId: 'whitenoise', soundNameKey: 'sound.whitenoise' },
   'starry-tent': { soundId: 'night', soundNameKey: 'sound.night' },
+  'study-desk': { soundId: 'rain', soundNameKey: 'sound.rain' },
+  'milky-way': { soundId: 'night', soundNameKey: 'sound.night' },
+  'mountain-stream': { soundId: 'forest', soundNameKey: 'sound.forest' },
 }
 
 interface Props {
@@ -100,7 +109,7 @@ export default function SceneSelector({ currentScene, onSceneChange }: Props) {
       {/* 推荐声音提示 */}
       {recommended && (
         <div className="text-[10px] text-white/30 text-center tracking-wide">
-          {t('scene.recommendHint').replace('{name}', t(recommended.soundNameKey as any))}
+          {t('scene.recommendHint').replace('{name}', t(recommended.soundNameKey))}
         </div>
       )}
     </div>

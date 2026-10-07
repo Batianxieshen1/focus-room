@@ -1,6 +1,6 @@
 // Focus Room Service Worker — v20260606
 // 网络优先(HTML/JS/CSS) + cache-first(视频/音频) + 离线回退
-const CACHE_NAME = 'focus-room-20260606'
+const CACHE_NAME = 'focus-room-20261007'
 const BASE_PATH = '/focus-room'
 
 const ASSETS = [
@@ -13,7 +13,7 @@ const ASSETS = [
 ]
 
 // 视频文件单独缓存（体积大，用 cache-first 策略）
-const VIDEO_CACHE = 'focus-room-videos-v1'
+const VIDEO_CACHE = 'focus-room-videos-v2'
 const VIDEO_PATHS = [
   BASE_PATH + '/videos/landing-bg.mp4',
   BASE_PATH + '/videos/mountain-lake.mp4',
@@ -25,10 +25,13 @@ const VIDEO_PATHS = [
   BASE_PATH + '/videos/campfire.mp4',
   BASE_PATH + '/videos/city-night.mp4',
   BASE_PATH + '/videos/starry-tent.mp4',
+  BASE_PATH + '/videos/study-desk.mp4',
+  BASE_PATH + '/videos/milky-way.mp4',
+  BASE_PATH + '/videos/mountain-stream.mp4',
 ]
 
 // 音频文件单独缓存（用 cache-first 策略）
-const AUDIO_CACHE = 'focus-room-audio-v1'
+const AUDIO_CACHE = 'focus-room-audio-v2'
 const AUDIO_PATHS = [
   BASE_PATH + '/sounds/rain.mp3',
   BASE_PATH + '/sounds/ocean.mp3',
@@ -38,6 +41,9 @@ const AUDIO_PATHS = [
   BASE_PATH + '/sounds/wind.mp3',
   BASE_PATH + '/sounds/night.mp3',
   BASE_PATH + '/sounds/whitenoise.wav',
+  BASE_PATH + '/sounds/keyboard.wav',
+  BASE_PATH + '/sounds/page-turn.wav',
+  BASE_PATH + '/sounds/clock.wav',
 ]
 
 // 安装时缓存静态资源（音频和视频在首次请求时按需缓存）

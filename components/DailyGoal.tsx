@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { t } from '@/lib/i18n'
+import { t, TranslationKey } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
 
 interface Props {
   studySeconds: number
 }
 
-const GOALS = [
+const GOALS: { minutes: number; labelKey: TranslationKey }[] = [
   { minutes: 30, labelKey: 'goal.30m' },
   { minutes: 60, labelKey: 'goal.1h' },
   { minutes: 90, labelKey: 'goal.1.5h' },
@@ -138,7 +138,7 @@ export default function DailyGoal({ studySeconds }: Props) {
                     : 'text-white/50 hover:text-white/80 hover:bg-white/[0.06]'
                 }`}
               >
-                {t(g.labelKey as any)}
+                {t(g.labelKey)}
               </button>
             ))}
           </div>

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useCallback, useState } from 'react';
-import { t } from '@/lib/i18n';
+import { useTranslation } from '@/lib/i18n';
+import { storageGet } from '@/lib/storage';
 
 interface LandingProps {
   onStart: () => void;
@@ -9,13 +10,14 @@ interface LandingProps {
 }
 
 export default function Landing({ onStart, onResume }: LandingProps) {
+  const { t } = useTranslation();
   const [hasLastScene, setHasLastScene] = useState(false);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('focus-room-last-scene');
-      if (saved) setHasLastScene(true);
-    } catch {}
+    const hasScene = !!storageGet<string | null>('focus-room-last-scene', null);
+    if (hasScene) {
+      queueMicrotask(() => setHasLastScene(true));
+    }
   }, []);
 
   const handleKeyDown = useCallback(

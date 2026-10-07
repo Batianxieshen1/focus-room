@@ -3,15 +3,17 @@
 import { lazy, Suspense, useState, useEffect, useCallback, useRef } from 'react'
 import TopNav from '@/components/TopNav'
 import BottomBar from '@/components/BottomBar'
-import Timer from '@/components/Timer'
-import { Scene, SCENES, SCENE_SOUND_MAP, getScenes } from '@/components/SceneSelector'
-import { TimerSettings, getStudyHistory } from '@/hooks/useTimer'
+import Timer, { TickInfo } from '@/components/Timer'
+import { Scene, SCENE_SOUND_MAP, getScenes } from '@/components/SceneSelector'
+import { TimerSettings, TimerMode, getStudyHistory } from '@/hooks/useTimer'
 import { useAudioContext } from '@/contexts/AudioContext'
+import { useWakeLock } from '@/hooks/useWakeLock'
 import ShortcutToast from '@/components/ShortcutToast'
 import InstallPrompt from '@/components/InstallPrompt'
 import DailyGoal from '@/components/DailyGoal'
 import Settings from '@/components/Settings'
-import { t } from '@/lib/i18n'
+import { useTranslation } from '@/lib/i18n'
+import { storageGet, storageSet } from '@/lib/storage'
 
 const MemoPanel = lazy(() => import('@/components/MemoPanel'))
 const FocusTools = lazy(() => import('@/components/FocusTools'))
@@ -28,7 +30,8 @@ export default function FocusView({
   onChangeScene: (scene: Scene) => void
   onBackToPicker: () => void
 }) {
-  const { sounds, toggleSound, setVolume, muteAll, unmuteAll } = useAudioContext()
+  const { t, locale } = useTranslation()
+  const { sounds, toggleSound, ambientMaster, setAmbientMaster, muteAll, unmuteAll } = useAudioContext()
   const [showMemo, setShowMemo] = useState(false)
   const [showTools, setShowTools] = useState(false)
   const [showStats, setShowStats] = useState(false)
@@ -48,28 +51,90 @@ export default function FocusView({
   useEffect(() => { studySecondsRef.current = studySeconds }, [studySeconds])
   useEffect(() => { soundsRef.current = sounds }, [sounds])
 
+  // ===== WakeLock：计时中 或 用户在设置中开启常亮 =====
+  const [timerRunning, setTimerRunning] = useState(false)
+  const [wakeLockSetting, setWakeLockSetting] = useState<boolean>(
+    () => storageGet<{ wakeLock?: boolean } | null>('focus-room-settings', null)?.wakeLock === true
+  )
+  useWakeLock(timerRunning || wakeLockSetting)
+
+  // ===== 计时器折叠态（极简胶囊 vs 完整仪表卡片） =====
+  const [timerCollapsed, setTimerCollapsed] = useState<boolean>(
+    () => storageGet<boolean>('focus-room-timer-collapsed', false)
+  )
+
+  const handleToggleTimerCollapse = useCallback(() => {
+    setTimerCollapsed(prev => {
+      const next = !prev
+      storageSet('focus-room-timer-collapsed', next)
+      return next
+    })
+  }, [])
+
+  // ===== Zen 清屏大时钟 =====
+  const [zenDisplay, setZenDisplay] = useState<'clock' | 'countdown'>('clock')
+  const [zenNow, setZenNow] = useState<Date>(() => new Date())
+  const [tickInfo, setTickInfo] = useState<TickInfo | null>(null)
+
+  const enterZen = useCallback(() => {
+    setZenNow(new Date())
+    setIsHidden(true)
+    setShowHint(true)
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
+    hideTimerRef.current = setTimeout(() => setShowHint(false), 3000)
+  }, [])
+
+  useEffect(() => {
+    if (!isHidden) return
+    const iv = setInterval(() => setZenNow(new Date()), 1000)
+    return () => clearInterval(iv)
+  }, [isHidden])
+
+  const ZEN_QUOTES = ['zen.quote1', 'zen.quote2', 'zen.quote3'] as const
+  const zenQuoteKey = (() => {
+    const dayOfYear = Math.floor((zenNow.getTime() - new Date(zenNow.getFullYear(), 0, 0).getTime()) / 86400000)
+    return ZEN_QUOTES[dayOfYear % ZEN_QUOTES.length]
+  })()
+
+  // Timer actions ref — captured from Timer's onActionsReady
+  const timerActionsRef = useRef<{
+    toggle: () => void
+    reset: () => void
+    setMode: (mode: TimerMode) => void
+    updateSettings: (settings: TimerSettings) => void
+  } | null>(null)
+
+  const handleTimerActionsReady = useCallback((actions: {
+    toggle: () => void
+    reset: () => void
+    setMode: (mode: TimerMode) => void
+    updateSettings: (settings: TimerSettings) => void
+  }) => {
+    timerActionsRef.current = actions
+  }, [])
+
+  const handleSettingsChange = useCallback((settings: TimerSettings) => {
+    timerActionsRef.current?.updateSettings(settings)
+    setWakeLockSetting((settings as TimerSettings & { wakeLock?: boolean }).wakeLock === true)
+  }, [])
+
   // Auto-start timer if setting is enabled (only once on mount)
   const autoStartDoneRef = useRef(false)
   useEffect(() => {
     if (autoStartDoneRef.current) return
     autoStartDoneRef.current = true
-    try {
-      const saved = localStorage.getItem('focus-room-settings')
-      if (saved) {
-        const settings = JSON.parse(saved)
-        if (settings.autoStart) {
-          // Delay slightly so timerActionsRef is ready
-          const checkAndStart = () => {
-            if (timerActionsRef.current) {
-              timerActionsRef.current.toggle()
-            } else {
-              setTimeout(checkAndStart, 200)
-            }
-          }
-          setTimeout(checkAndStart, 500)
+    const settings = storageGet<{ autoStart?: boolean } | null>('focus-room-settings', null)
+    if (settings?.autoStart) {
+      // Delay slightly so timerActionsRef is ready
+      const checkAndStart = () => {
+        if (timerActionsRef.current) {
+          timerActionsRef.current.toggle()
+        } else {
+          setTimeout(checkAndStart, 200)
         }
       }
-    } catch {}
+      setTimeout(checkAndStart, 500)
+    }
   }, [])
 
   // Sitting reminder: show after 45 minutes
@@ -80,28 +145,7 @@ export default function FocusView({
       setTimeout(() => setShowToast(false), 5000)
     }, 45 * 60 * 1000)
     return () => clearTimeout(timer)
-  }, [])
-
-  // Timer actions ref — captured from Timer's onActionsReady
-  const timerActionsRef = useRef<{
-    toggle: () => void
-    reset: () => void
-    setMode: (mode: any) => void
-    updateSettings: (settings: TimerSettings) => void
-  } | null>(null)
-
-  const handleTimerActionsReady = useCallback((actions: {
-    toggle: () => void
-    reset: () => void
-    setMode: (mode: any) => void
-    updateSettings: (settings: TimerSettings) => void
-  }) => {
-    timerActionsRef.current = actions
-  }, [])
-
-  const handleSettingsChange = useCallback((settings: TimerSettings) => {
-    timerActionsRef.current?.updateSettings(settings)
-  }, [])
+  }, [t])
 
   // Sleep timer
   const [sleepTimerRemaining, setSleepTimerRemaining] = useState<number | null>(null)
@@ -156,9 +200,6 @@ export default function FocusView({
     }
   }, [sounds, currentScene.id, toggleSound])
 
-  const mainSound = sounds.find(s => s.isPlaying)
-  const volume = mainSound?.volume ?? 50
-
   const handlePrevScene = useCallback(() => {
     const scenes = getScenes()
     const idx = scenes.findIndex(s => s.id === currentScene.id)
@@ -183,11 +224,6 @@ export default function FocusView({
     if (anyPlaying) muteAll(); else unmuteAll()
   }, [anyPlaying, muteAll, unmuteAll])
 
-  const handleVolumeChange = useCallback((v: number) => {
-    const playing = sounds.find(s => s.isPlaying)
-    if (playing) setVolume(playing.id, v)
-  }, [sounds, setVolume])
-
   const handleFullscreen = useCallback(() => {
     try {
       if (document.fullscreenElement) {
@@ -209,7 +245,7 @@ export default function FocusView({
       setShowReport(true)
       setTimeout(() => setShowReport(false), 6000)
     }, 1500)
-  }, [])
+  }, [setShowReport])
 
   const handleStudySecondsChange = useCallback((seconds: number) => {
     setStudySeconds(seconds)
@@ -229,6 +265,8 @@ export default function FocusView({
         if (prev === null || prev <= 1) {
           clearInterval(sleepIntervalRef.current!)
           muteAll()
+          // 同步暂停内置音乐播放器（若在播放）
+          window.dispatchEvent(new CustomEvent('focusroom:sleep-expired'))
           return null
         }
         return prev - 1
@@ -334,15 +372,16 @@ export default function FocusView({
       const now = Date.now()
       if (now - lastClick < 300) {
         const next = !isHiddenRef.current
-        isHiddenRef.current = next
-        setIsHidden(next)
         if (next) {
-          setShowHint(true)
-          if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
-          hideTimerRef.current = setTimeout(() => setShowHint(false), 3000)
+          enterZen()
         } else {
+          isHiddenRef.current = false
+          setIsHidden(false)
           setShowHint(false)
         }
+      } else if (isHiddenRef.current) {
+        // 清屏（Zen）模式下单击：在时钟 / 番茄倒计时之间切换
+        setZenDisplay(prev => (prev === 'clock' ? 'countdown' : 'clock'))
       }
       lastClick = now
     }
@@ -355,6 +394,11 @@ export default function FocusView({
         isHiddenRef.current = false
         setIsHidden(false)
         setShowHint(false)
+      }
+
+      if (e.code === 'KeyZ' && !isHiddenRef.current && !e.ctrlKey && !e.metaKey) {
+        enterZen()
+        return
       }
 
       // Only handle memo/tools/back shortcuts when NOT in clear-screen mode
@@ -387,13 +431,49 @@ export default function FocusView({
       window.removeEventListener('click', handleClick)
       window.removeEventListener('keydown', handleKey)
     }
-  }, [])
+  }, [enterZen, handleToggleMute, onBackToPicker])
+
+  const hoursStr = String(zenNow.getHours()).padStart(2, '0')
+  const minsStr = String(zenNow.getMinutes()).padStart(2, '0')
 
   return (
     <div className="absolute inset-0 z-10">
-      {/* 暗角 + 底部渐变 */}
+      {/* 电影胶片微质感层 (35mm Micro-Grain) + 柔和通透暗角 */}
+      <div className="cinema-grain" />
       <div className="absolute inset-0 overlay-vignette pointer-events-none" />
-      <div className="absolute inset-x-0 bottom-0 h-48 overlay-bottom pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-40 overlay-bottom pointer-events-none" />
+
+      {/* Zen 清屏大时钟 — 桌搭模式：单击在时钟/倒计时间切换，极简样式 */}
+      {isHidden && (
+        <div className="absolute inset-0 z-[5] flex flex-col items-center justify-center pointer-events-none animate-fade-in select-none">
+          {zenDisplay === 'clock' ? (
+            <>
+              <div className="zen-clock">
+                {`${hoursStr}:${minsStr}`}
+              </div>
+              <div className="mt-6 text-sm text-white/50 tracking-[0.25em]">
+                {zenNow.toLocaleDateString(locale === 'en' ? 'en-US' : 'zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="zen-clock">{tickInfo?.displayTime ?? '00:00'}</div>
+              <div className="mt-6 text-sm text-white/50 tracking-[0.25em] uppercase">
+                {!tickInfo
+                  ? ''
+                  : tickInfo.mode === 'pomodoro'
+                    ? (tickInfo.phase === 'work' ? t('timer.focusing') : tickInfo.phase === 'longBreak' ? t('timer.longBreak') : t('timer.shortBreak'))
+                    : tickInfo.mode === 'countdown' ? t('timer.zenRemaining') : t('timer.stopwatch')}
+              </div>
+            </>
+          )}
+
+          <div className="mt-10 max-w-[80vw] text-center text-sm text-white/30 tracking-wide leading-relaxed">
+            {t(zenQuoteKey)}
+          </div>
+        </div>
+      )}
+
 
       {/* 顶部导航 */}
       <div className={`transition-all duration-500 ${isHidden ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
@@ -403,60 +483,95 @@ export default function FocusView({
           onOpenMemo={() => setShowMemo(true)}
           onOpenStats={() => setShowStats(true)}
           onOpenCalendar={() => setShowCalendar(true)}
-          onClearScreen={() => setIsHidden(true)}
+          onClearScreen={enterZen}
         />
       </div>
 
-      {/* 左下角计时器面板 */}
-      <div className={`fixed left-3 bottom-20 z-20 w-[calc(100vw-24px)] transition-all duration-500 sm:left-6 sm:bottom-24 sm:w-[340px] ${isHidden ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
-        <div className="glass-strong rounded-2xl p-4 border-t border-white/[0.06] sm:p-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <DailyGoal studySeconds={studySeconds} />
-              <div className="text-[10px] text-white/40 tracking-[0.2em] uppercase">
-                {t('focus.step03')}
-              </div>
-            </div>
-            <div className="text-[10px] text-white/30">
-              {currentScene.icon} {currentScene.name}
-            </div>
-          </div>
+      {/* 左下角计时器面板：支持【极简胶囊态】与【完整仪表卡片态】自由切换 */}
+      <div className={`fixed left-3 bottom-20 z-20 transition-all duration-300 sm:left-6 sm:bottom-24 ${
+        timerCollapsed ? 'w-auto' : 'w-[calc(100vw-24px)] sm:w-[340px]'
+      } ${isHidden ? 'opacity-0 -translate-y-4 pointer-events-none' : ''}`}>
+        {timerCollapsed ? (
           <Timer
             onActionsReady={handleTimerActionsReady}
             onPomodoroComplete={handlePomodoroComplete}
             onStudySecondsChange={handleStudySecondsChange}
+            onRunningChange={setTimerRunning}
+            reportTick={isHidden}
+            onTickInfo={setTickInfo}
+            collapsed={true}
+            onToggleCollapse={handleToggleTimerCollapse}
           />
-          {/* Study info strip */}
-          <div className="flex items-center gap-3 mt-2 text-[10px] text-white/30">
-            <span>
-              {t('focus.todayStudy')}:{' '}
-              {(() => {
-                const h = Math.floor(studySeconds / 3600)
-                const m = Math.floor((studySeconds % 3600) / 60)
-                const s = studySeconds % 60
-                if (h > 0) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-              })()}
-            </span>
-            <span>
-              {t('focus.weekStudy')}:{' '}
-              {(() => {
-                const history = getStudyHistory()
-                const now = new Date()
-                const dayOfWeek = now.getDay()
-                const startOfWeek = new Date(now)
-                startOfWeek.setDate(now.getDate() - dayOfWeek)
-                startOfWeek.setHours(0, 0, 0, 0)
-                const weekDays = new Set(
-                  history
-                    .filter(h => new Date(h.date) >= startOfWeek && h.studySeconds > 0)
-                    .map(h => h.date)
-                )
-                return `${weekDays.size}${t('focus.activeDays')}`
-              })()}
-            </span>
+        ) : (
+          <div className="aura-card rounded-2xl p-4 sm:p-6 animate-scale-in">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <DailyGoal studySeconds={studySeconds} />
+                <div className="text-[10px] text-white/40 tracking-[0.2em] uppercase">
+                  {t('focus.step03')}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-[10px] text-white/40">
+                  {currentScene.icon} {currentScene.name}
+                </div>
+                <button
+                  onClick={handleToggleTimerCollapse}
+                  className="p-1 rounded-md text-white/40 hover:text-white/80 hover:bg-white/10 transition-all"
+                  title={t('timer.collapse')}
+                  aria-label={t('timer.collapse')}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="4 14 10 14 10 20" />
+                    <polyline points="20 10 14 10 14 4" />
+                    <line x1="14" y1="10" x2="21" y2="3" />
+                    <line x1="3" y1="21" x2="10" y2="14" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <Timer
+              onActionsReady={handleTimerActionsReady}
+              onPomodoroComplete={handlePomodoroComplete}
+              onStudySecondsChange={handleStudySecondsChange}
+              onRunningChange={setTimerRunning}
+              reportTick={isHidden}
+              onTickInfo={setTickInfo}
+              collapsed={false}
+              onToggleCollapse={handleToggleTimerCollapse}
+            />
+            {/* Study info strip */}
+            <div className="flex items-center gap-3 mt-3 pt-2.5 border-t border-white/[0.06] text-[10px] text-white/35">
+              <span>
+                {t('focus.todayStudy')}:{' '}
+                {(() => {
+                  const h = Math.floor(studySeconds / 3600)
+                  const m = Math.floor((studySeconds % 3600) / 60)
+                  const s = studySeconds % 60
+                  if (h > 0) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+                  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+                })()}
+              </span>
+              <span>
+                {t('focus.weekStudy')}:{' '}
+                {(() => {
+                  const history = getStudyHistory()
+                  const now = new Date()
+                  const dayOfWeek = now.getDay()
+                  const startOfWeek = new Date(now)
+                  startOfWeek.setDate(now.getDate() - dayOfWeek)
+                  startOfWeek.setHours(0, 0, 0, 0)
+                  const weekDays = new Set(
+                    history
+                      .filter(h => new Date(h.date) >= startOfWeek && h.studySeconds > 0)
+                      .map(h => h.date)
+                  )
+                  return `${weekDays.size}${t('focus.activeDays')}`
+                })()}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* 底部场景切换栏 */}
@@ -466,12 +581,12 @@ export default function FocusView({
           sceneIcon={currentScene.icon}
           sceneDescription={currentScene.description}
           isMuted={!anyPlaying}
-          volume={volume}
+          volume={ambientMaster}
           anyPlaying={anyPlaying}
           onPrevScene={handlePrevScene}
           onNextScene={handleNextScene}
           onToggleMute={handleToggleMute}
-          onVolumeChange={handleVolumeChange}
+          onVolumeChange={setAmbientMaster}
           onOpenSettings={() => setShowSettings(true)}
           onFullscreen={handleFullscreen}
           sleepTimerRemaining={sleepTimerRemaining}
@@ -530,6 +645,7 @@ export default function FocusView({
             pomodoros={reportPomodoros}
             studyMinutes={Math.round(reportStudySeconds / 60)}
             sceneName={currentScene.name}
+            sceneId={currentScene.id}
             onClose={() => setShowShareCard(false)}
           />
         </Suspense>

@@ -9,7 +9,7 @@ interface Props {
   videoSrc?: string
 }
 
-const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '/focus-room'
 
 const VIDEO_SOURCES: Record<string, string> = {
   'landing': BASE_PATH + '/videos/landing-bg.mp4',
@@ -22,6 +22,26 @@ const VIDEO_SOURCES: Record<string, string> = {
   'campfire': BASE_PATH + '/videos/campfire.mp4',
   'city-night': BASE_PATH + '/videos/city-night.mp4',
   'starry-tent': BASE_PATH + '/videos/starry-tent.mp4',
+  'study-desk': BASE_PATH + '/videos/study-desk.mp4',
+  'milky-way': BASE_PATH + '/videos/milky-way.mp4',
+  'mountain-stream': BASE_PATH + '/videos/mountain-stream.mp4',
+}
+
+// 导出供 ShareCard 海报合成复用
+export const POSTER_SOURCES: Record<string, string> = {
+  'landing': BASE_PATH + '/posters/landing.jpg',
+  'mountain-lake': BASE_PATH + '/posters/mountain-lake.jpg',
+  'seaside': BASE_PATH + '/posters/seaside.jpg',
+  'forest': BASE_PATH + '/posters/forest.jpg',
+  'starry-sky': BASE_PATH + '/posters/starry-sky.jpg',
+  'rainy-cafe': BASE_PATH + '/posters/rainy-cafe.jpg',
+  'snowy-window': BASE_PATH + '/posters/snowy-window.jpg',
+  'campfire': BASE_PATH + '/posters/campfire.jpg',
+  'city-night': BASE_PATH + '/posters/city-night.jpg',
+  'starry-tent': BASE_PATH + '/posters/starry-tent.jpg',
+  'study-desk': BASE_PATH + '/posters/study-desk.jpg',
+  'milky-way': BASE_PATH + '/posters/milky-way.jpg',
+  'mountain-stream': BASE_PATH + '/posters/mountain-stream.jpg',
 }
 
 function getNextSceneId(currentScene: string): string {
@@ -30,8 +50,18 @@ function getNextSceneId(currentScene: string): string {
   return SCENES[(idx + 1) % SCENES.length].id
 }
 
+function isSaveDataEnabled(): boolean {
+  if (typeof navigator === 'undefined') return false
+  const nav = navigator as unknown as { connection?: { saveData?: boolean } }
+  return Boolean(nav.connection?.saveData)
+}
+
 export default function VideoBackground({ scene, videoSrc }: Props) {
   const resolvedSrc = videoSrc || VIDEO_SOURCES[scene] || ''
+  const currentPoster = POSTER_SOURCES[scene] || POSTER_SOURCES['mountain-lake']
+  const nextSceneId = getNextSceneId(scene)
+  const nextPoster = POSTER_SOURCES[nextSceneId]
+
   const videoARef = useRef<HTMLVideoElement>(null)
   const videoBRef = useRef<HTMLVideoElement>(null)
   const preloadRef = useRef<HTMLVideoElement>(null)
@@ -47,14 +77,20 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
   // Map: which video element is "current" vs "next"
   const [activeOpacity, setActiveOpacity] = useState<'A' | 'B'>('A')
 
-  useEffect(() => {
-    const version = ++versionRef.current
+  // Track previous scene and retryKey to reset loading states synchronously during render
+  const [prevTrack, setPrevTrack] = useState({ scene, retryKey })
+  if (prevTrack.scene !== scene || prevTrack.retryKey !== retryKey) {
+    setPrevTrack({ scene, retryKey })
     setLoaded(false)
     setError(false)
     setLoading(true)
+    setActiveOpacity('A')
+  }
+
+  useEffect(() => {
+    const version = ++versionRef.current
     crossfadingRef.current = false
     activeRef.current = 'A'
-    setActiveOpacity('A')
 
     const src = resolvedSrc
     const videoA = videoARef.current
@@ -62,6 +98,8 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
     if (!videoA || !videoB) return
 
     // 只加载 videoA；videoB 在交叉淡入前才按需加载，避免重复下载
+    videoA.loop = false
+    videoB.loop = false
     videoA.src = src
     videoA.load()
     // 清空 videoB 防止旧场景残留
@@ -88,7 +126,25 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
       videoA.removeEventListener('canplay', handleCanPlay)
       videoA.removeEventListener('error', handleError)
     }
-  }, [scene, retryKey])
+  }, [scene, retryKey, resolvedSrc])
+
+  // 看门狗：页面可见但背景视频被暂停（切后台返回 / 浏览器省电干预 / 面板遮挡）
+  // 时就恢复。5 秒一轮 + visibilitychange 即时触发，双保险。
+  useEffect(() => {
+    const resume = () => {
+      if (document.visibilityState !== 'visible') return
+      const active = activeRef.current === 'A' ? videoARef.current : videoBRef.current
+      if (active && active.readyState >= 2 && active.paused && !crossfadingRef.current) {
+        active.play().catch(() => {})
+      }
+    }
+    const iv = setInterval(resume, 5000)
+    document.addEventListener('visibilitychange', resume)
+    return () => {
+      clearInterval(iv)
+      document.removeEventListener('visibilitychange', resume)
+    }
+  }, [])
 
   // Crossfade logic: when current video nears the end, start the next one
   useEffect(() => {
@@ -104,8 +160,20 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
       const next = activeRef.current === 'A' ? videoB : videoA
       if (!current.duration || !isFinite(current.duration)) return
 
-      // 提前 5 秒触发下一个视频的预加载（设置 src 并开始下载）
-      if (!preloadTriggered && current.currentTime >= current.duration - 5) {
+      // 短视频（≤12s）：预加载还没就绪就得换轨，A/B 交叉淡入必然产生
+      // "切到黑帧/暂停"竞态（真实事故：篝火场景卡死在黑帧）。这类视频
+      // 直接交给原生 loop 无缝循环，彻底跳过换轨。
+      if (current.duration <= 12) {
+        if (!current.loop) {
+          current.loop = true
+          if (current.paused) current.play().catch(() => {})
+        }
+        return
+      }
+
+      // 当前视频剩约 10 秒时才触发完整加载以保住 A/B 交叉淡入（设置 src 并开始预载）
+      const preloadLeadTime = Math.max(0, current.duration - 10)
+      if (!preloadTriggered && current.currentTime >= preloadLeadTime) {
         preloadTriggered = true
         if (!next.src || next.src === 'about:blank') {
           next.src = resolvedSrc
@@ -114,8 +182,13 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
         next.load()
       }
 
-      // Start crossfade 1.5 seconds before end
+      // Start crossfade 1.5 seconds before end — 仅当备轨已可流畅播放
+      // （readyState≥3），否则就地重绕当前轨兜底，绝不切到未就绪的黑帧
       if (current.currentTime >= current.duration - 1.5) {
+        if (next.readyState < 3) {
+          current.currentTime = 0
+          return
+        }
         crossfadingRef.current = true
         // 确保 next 有 src（短视频可能未触发 preload）
         if (!next.src || next.src === 'about:blank') {
@@ -147,26 +220,27 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
         crossfadeTimeoutRef.current = null
       }
     }
-  }, [scene])
+  }, [scene, resolvedSrc])
 
-  // Preload the next scene's video so switching is instant
+  // 保留第三条 video 轨：降级为 preload="metadata" + poster 封面；并在开启 saveData 时跳过
   useEffect(() => {
+    if (isSaveDataEnabled()) return
+
     const preloadVideo = preloadRef.current
     if (!preloadVideo) return
 
-    const nextSceneId = getNextSceneId(scene)
     const nextSrc = VIDEO_SOURCES[nextSceneId]
     if (!nextSrc) return
 
     preloadVideo.src = nextSrc
-    preloadVideo.preload = 'auto'
+    preloadVideo.preload = 'metadata'
     preloadVideo.load()
 
     return () => {
       preloadVideo.removeAttribute('src')
       preloadVideo.load()
     }
-  }, [scene])
+  }, [nextSceneId])
 
   const gradient = SCENE_GRADIENTS[scene] || SCENE_GRADIENTS['mountain-lake']
 
@@ -192,24 +266,28 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
         }}
       />
 
-      {/* 视频层 — videoA 预加载当前场景，videoB 仅在交叉淡入时按需加载 */}
+      {/* 视频层 — videoA 预加载当前场景，videoB 仅在交叉淡入时按需加载；滤镜变量由 lib/atmosphere 控制 */}
       <video
         ref={videoARef}
         muted
         playsInline
         preload="auto"
+        poster={currentPoster}
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ease-in-out ${
           activeOpacity === 'A' && loaded ? 'opacity-100' : 'opacity-0'
         }`}
+        style={{ filter: 'brightness(var(--bg-brightness, 100%)) blur(var(--bg-blur, 0px)) sepia(var(--bg-warmth, 0))' }}
       />
       <video
         ref={videoBRef}
         muted
         playsInline
         preload="none"
+        poster={currentPoster}
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ease-in-out ${
           activeOpacity === 'B' && loaded ? 'opacity-100' : 'opacity-0'
         }`}
+        style={{ filter: 'brightness(var(--bg-brightness, 100%)) blur(var(--bg-blur, 0px)) sepia(var(--bg-warmth, 0))' }}
       />
 
       {/* 加载指示器 — 呼吸光圈 + 微光扫描 */}
@@ -256,12 +334,13 @@ export default function VideoBackground({ scene, videoSrc }: Props) {
         </div>
       )}
 
-      {/* Hidden preload video for the next scene */}
+      {/* 保留第三条 video 轨：降级为 preload="metadata" + poster 封面 */}
       <video
         ref={preloadRef}
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
+        poster={nextPoster}
         className="absolute w-0 h-0 opacity-0 pointer-events-none"
         aria-hidden="true"
       />
