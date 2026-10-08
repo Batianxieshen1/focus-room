@@ -487,10 +487,10 @@ export default function SoundMixer({
           {/* Category Filter Tabs */}
           <div className="flex items-center gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.06]">
             {[
-              { id: 'all', label: '全部', icon: '✨' },
-              { id: 'nature', label: '天籁自然', icon: '🌿' },
-              { id: 'space', label: '空间生活', icon: '🏙' },
-              { id: 'focus', label: '专注调频', icon: '🧠' },
+              { id: 'all', labelKey: 'sound.catAll' as const, icon: '✨' },
+              { id: 'nature', labelKey: 'sound.catNature' as const, icon: '🌿' },
+              { id: 'space', labelKey: 'sound.catSpace' as const, icon: '🏙' },
+              { id: 'focus', labelKey: 'sound.catFocus' as const, icon: '🧠' },
             ].map(cat => (
               <button
                 key={cat.id}
@@ -502,7 +502,7 @@ export default function SoundMixer({
                 }`}
               >
                 <span>{cat.icon}</span>
-                <span>{cat.label}</span>
+                <span>{t(cat.labelKey)}</span>
               </button>
             ))}
           </div>

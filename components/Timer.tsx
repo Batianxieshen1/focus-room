@@ -225,7 +225,7 @@ export default function Timer({
             {timer.pomodoroPhase !== 'work' && (
               <span className="text-[11px] text-emerald-300/80 tracking-wider flex items-center gap-1 animate-pulse">
                 <span>🌬️</span>
-                <span>4-7-8 呼吸放松 (吸4s · 屏7s · 呼8s)</span>
+                <span>{t('timer.breatheGuide')}</span>
               </span>
             )}
           </div>
@@ -361,7 +361,7 @@ export default function Timer({
                   {t('timer.bgPromptTitle')}
                 </span>
                 <span className="text-[11px] text-white/65 leading-tight">
-                  离开后台 {Math.floor(timer.backgroundPrompt.elapsedSeconds / 60)} 分钟，是否计入本次专注？
+                  {t('timer.bgPromptDesc').replace('{min}', String(Math.floor(timer.backgroundPrompt.elapsedSeconds / 60)))}
                 </span>
               </div>
             </div>
