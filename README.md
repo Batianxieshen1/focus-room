@@ -38,3 +38,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ---
 
 > 更多作品与札记：**[蓝纸 · 造物与札记](https://batianxieshen1.github.io/blog/)**
+
+## 媒体资源说明
+
+`public/videos/` 内含 12 段场景背景视频（1080p 起，约 170MB 总体积）+ `public/posters/` 骨架海报。克隆仓库前请留意体积；替换或新增场景视频的选片标准、压缩参数与缓存版本号注意事项见 `docs/video-upgrade.md`。

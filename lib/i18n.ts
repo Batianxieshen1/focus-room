@@ -426,6 +426,10 @@ const translations = {
     'settings.presetClassic': '经典',
     'settings.presetDeep': '深度',
     'settings.presetSprint': '冲刺',
+    'radio.lofiDesc': '经典柔和低保真节拍 · 慢节奏专注',
+    'radio.jazzDesc': '雨夜都市爵士萨克斯 · 惬意咖啡厅',
+    'radio.alphaDesc': '双耳节律与环境空间声学 · 深度心流',
+    'radio.vaporDesc': '复古合成器波与夜色律动 · 编程沉浸',
   },
   en: {
     // Tab names / toolbar
@@ -847,6 +851,10 @@ const translations = {
     'settings.presetClassic': 'Classic',
     'settings.presetDeep': 'Deep',
     'settings.presetSprint': 'Sprint',
+    'radio.lofiDesc': 'Mellow chillhop classics · slow-tempo focus',
+    'radio.jazzDesc': 'Rainy-night city jazz sax · cozy cafe',
+    'radio.alphaDesc': 'Binaural rhythms & spatial ambience · deep flow',
+    'radio.vaporDesc': 'Retro synthwaves & night pulse · coding immersion',
   },
 } as const
 

@@ -9,6 +9,7 @@ interface Props {
   onOpenStats: () => void
   onOpenCalendar: () => void
   onClearScreen: () => void
+  onOpenMusic?: () => void
 }
 
 export default function TopNav({
@@ -18,6 +19,7 @@ export default function TopNav({
   onOpenStats,
   onOpenCalendar,
   onClearScreen,
+  onOpenMusic,
 }: Props) {
   return (
     <nav className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-3 py-2 safe-top sm:px-6 sm:py-3 glass">
@@ -73,7 +75,7 @@ export default function TopNav({
           <span className="hidden sm:inline">{t('nav.calendar')}</span>
         </button>
         <button
-          onClick={() => window.open('https://www.youtube.com/results?search_query=lofi+study+music+live', '_blank')}
+          onClick={() => onOpenMusic?.()}
           className="flex h-8 w-8 items-center justify-center rounded-full px-3 py-1.5 text-sm text-white/60 transition-all duration-200 hover:text-white hover:bg-white/10 active:scale-95 sm:h-auto sm:w-auto sm:rounded-full sm:text-sm sm:text-white/60 sm:hover:bg-white/[0.08]"
           title={t('nav.music')}
         >
