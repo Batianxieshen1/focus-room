@@ -6,6 +6,7 @@ import { t } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
 import { buildMixShareURL } from '@/lib/mixShare'
 import { setBinaural, bindBinauralSleepTimer, BINAURAL_BANDS } from '@/lib/binaural'
+import { getRadioSnapshot, subscribeRadio, startRadio, pauseRadio, resumeRadio, stopRadio, setRadioVolume } from '@/lib/radio'
 
 const ALLOWED_TYPES = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/x-wav']
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
@@ -173,100 +174,39 @@ export default function SoundMixer({
     setBinaural({ volume: v / 100 })
   }
 
-  // 24/7 自习电台播放状态
-  const [activeRadioId, setActiveRadioId] = useState<string | null>(null)
-  const [radioPlaying, setRadioPlaying] = useState(false)
-  const [radioVolume, setRadioVolume] = useState<number>(() => storageGet<number>('focus-room-radio-volume', 75))
-  const [masterVolume, setMasterVolume] = useState<number>(() => storageGet<number>('focus-room-ambient-master', 100))
-  const [isMasterMuted, setIsMasterMuted] = useState(false)
-  const radioAudioRef = useRef<HTMLAudioElement | null>(null)
-
-  const handleStopRadio = useCallback(() => {
-    if (radioAudioRef.current) {
-      radioAudioRef.current.pause()
-      radioAudioRef.current.src = ''
-    }
-    setActiveRadioId(null)
-    setRadioPlaying(false)
-  }, [])
-
-  // 监听全局 Master 音量、静音与睡眠定时到点事件
-  useEffect(() => {
-    const handleMaster = (e: Event) => {
-      const detail = (e as CustomEvent<{ volume?: number; isMuted?: boolean }>).detail
-      if (!detail) return
-      if (typeof detail.volume === 'number') setMasterVolume(detail.volume)
-      if (typeof detail.isMuted === 'boolean') setIsMasterMuted(detail.isMuted)
-    }
-    const handleSleepExpired = () => {
-      handleStopRadio()
-    }
-    window.addEventListener('focusroom:master', handleMaster)
-    window.addEventListener('focusroom:sleep-expired', handleSleepExpired)
-    return () => {
-      window.removeEventListener('focusroom:master', handleMaster)
-      window.removeEventListener('focusroom:sleep-expired', handleSleepExpired)
-    }
-  }, [handleStopRadio])
-
-  // 电台音量随电台分轨音量、Master 总音量与全局静音动态联动
-  useEffect(() => {
-    if (radioAudioRef.current) {
-      const effectiveVol = isMasterMuted ? 0 : (radioVolume / 100) * (masterVolume / 100)
-      radioAudioRef.current.volume = Math.min(1, Math.max(0, effectiveVol))
-    }
-    storageSet('focus-room-radio-volume', radioVolume)
-  }, [radioVolume, masterVolume, isMasterMuted])
+  // 24/7 自习电台 —— 播放引擎在 lib/radio.ts（模块单例），这里订阅状态并做互斥协调
+  const [radio, setRadio] = useState(() => getRadioSnapshot())
+  useEffect(() => subscribeRadio(() => setRadio(getRadioSnapshot())), [])
 
   // 当外部网易云歌单激活时，自动停止自习电台，避免声音打架
   useEffect(() => {
-    if (activePlaylistId && (radioPlaying || radioAudioRef.current)) {
-      handleStopRadio()
-    }
-  }, [activePlaylistId, radioPlaying, handleStopRadio])
-
-  // 清理电台实例
-  useEffect(() => {
-    return () => {
-      const a = radioAudioRef.current
-      if (a) {
-        a.pause()
-        a.removeAttribute('src')
-      }
-    }
-  }, [])
+    if (activePlaylistId) stopRadio()
+  }, [activePlaylistId])
 
   const handleToggleRadio = (station: typeof STUDY_RADIOS[number]) => {
-    if (activeRadioId === station.id) {
-      if (radioPlaying) {
-        radioAudioRef.current?.pause()
-        setRadioPlaying(false)
-      } else {
-        radioAudioRef.current?.play().then(() => setRadioPlaying(true)).catch(() => {})
-      }
-    } else {
-      if (radioAudioRef.current) {
-        radioAudioRef.current.pause()
-      } else {
-        radioAudioRef.current = new Audio()
-      }
-      radioAudioRef.current.src = station.streamUrl
-      const effectiveVol = isMasterMuted ? 0 : (radioVolume / 100) * (masterVolume / 100)
-      radioAudioRef.current.volume = Math.min(1, Math.max(0, effectiveVol))
-      radioAudioRef.current.play()
-        .then(() => {
-          setActiveRadioId(station.id)
-          setRadioPlaying(true)
-          if (activePlaylistId) {
-            onPlaylistChange?.(null)
-          }
-        })
-        .catch(() => {
-          setNotification(t('sound.fetchError'))
-          setTimeout(() => setNotification(null), 2500)
-        })
+    if (radio.stationId === station.id) {
+      // 同一台：播放中→暂停；已暂停→续播
+      if (radio.playing) pauseRadio()
+      else resumeRadio()
+      return
     }
+    startRadio(station.id, station.streamUrl).then(ok => {
+      if (ok && activePlaylistId) {
+        onPlaylistChange?.(null)
+      } else if (!ok) {
+        setNotification(t('sound.fetchError'))
+        setTimeout(() => setNotification(null), 2500)
+      }
+    })
   }
+
+  const handleStopRadio = useCallback(() => {
+    stopRadio()
+  }, [])
+
+  const radioPlaying = radio.playing && !!radio.stationId
+  const activeRadioId = radio.stationId
+  const radioVolume = radio.volume
 
   // Buffer loading states
   const [bufferingIds, setBufferingIds] = useState<Set<string>>(new Set())
