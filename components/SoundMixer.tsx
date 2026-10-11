@@ -67,32 +67,32 @@ const STUDY_RADIOS = [
   {
     id: 'lofi-girl',
     name: 'Lofi Chillhop Beats',
-    desc: '经典柔和低保真节拍 · 慢节奏专注',
+    descKey: 'radio.lofiDesc',
     icon: '☕',
     streamUrl: 'https://stream.zeno.fm/f3wvbbqmdg8uv',
   },
   {
     id: 'jazz-cafe',
     name: 'Rainy Jazz Cafe',
-    desc: '雨夜都市爵士萨克斯 · 惬意咖啡厅',
+    descKey: 'radio.jazzDesc',
     icon: '🎷',
     streamUrl: 'https://ice1.somafm.com/groovesalad-128-mp3',
   },
   {
     id: 'deep-alpha',
     name: 'Deep Focus 432Hz',
-    desc: '双耳节律与环境空间声学 · 深度心流',
+    descKey: 'radio.alphaDesc',
     icon: '🌌',
     streamUrl: 'https://ice1.somafm.com/dronezone-128-mp3',
   },
   {
     id: 'vapor-night',
     name: 'Tokyo Nightwave',
-    desc: '复古合成器波与夜色律动 · 编程沉浸',
+    descKey: 'radio.vaporDesc',
     icon: '🌆',
     streamUrl: 'https://radio.plaza.one/mp3',
   },
-]
+] as const
 
 const SOUND_CATEGORIES: Record<'nature' | 'space' | 'focus', string[]> = {
   nature: ['rain', 'ocean', 'forest', 'fire', 'wind', 'night'],
@@ -467,6 +467,7 @@ export default function SoundMixer({
             <span className="text-[10px] text-white/40 tracking-widest uppercase font-medium">{t('sound.title')}</span>
             <div className="flex items-center gap-3">
               <button
+                aria-pressed={showFavsOnly}
                 onClick={() => setShowFavsOnly(v => !v)}
                 className={`text-xs transition-colors duration-200 active:scale-95 flex items-center gap-1 ${
                   showFavsOnly ? 'text-amber-300' : 'text-white/50 hover:text-white'
@@ -494,6 +495,7 @@ export default function SoundMixer({
             ].map(cat => (
               <button
                 key={cat.id}
+                aria-pressed={soundCategory === cat.id}
                 onClick={() => setSoundCategory(cat.id as typeof soundCategory)}
                 className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] whitespace-nowrap transition-all duration-150 flex items-center justify-center gap-1 ${
                   soundCategory === cat.id
@@ -519,6 +521,8 @@ export default function SoundMixer({
               <button
                 key={sound.id}
                 onClick={() => toggleSound(sound.id)}
+                aria-pressed={sound.isPlaying}
+                aria-label={sound.name}
                 className={`relative flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all duration-200 active:scale-95 border ${
                   sound.isPlaying
                     ? 'bg-white/[0.15] border-amber-400/40 shadow-sm text-white'
@@ -529,6 +533,7 @@ export default function SoundMixer({
                 <span
                   role="button"
                   tabIndex={-1}
+                  aria-label={(soundFavs.includes(sound.id) ? t('sound.unfav') : t('sound.fav')) + ' · ' + sound.name}
                   title={soundFavs.includes(sound.id) ? t('sound.unfav') : t('sound.fav')}
                   onClick={(e) => { e.stopPropagation(); toggleFav(sound.id) }}
                   className={`absolute top-1 right-1.5 text-[11px] leading-none cursor-pointer transition-all duration-150 hover:scale-125 ${
@@ -863,7 +868,7 @@ export default function SoundMixer({
                           </div>
                         )}
                       </div>
-                      <p className="text-[10px] text-white/40 truncate mt-0.5">{station.desc}</p>
+                      <p className="text-[10px] text-white/40 truncate mt-0.5">{t(station.descKey)}</p>
                     </div>
 
                     {isCurrent && (

@@ -1,6 +1,6 @@
 // Focus Room Service Worker — v20260606
 // 网络优先(HTML/JS/CSS) + cache-first(视频/音频) + 离线回退
-const CACHE_NAME = 'focus-room-20261008'
+const CACHE_NAME = 'focus-room-20261011'
 const BASE_PATH = '/focus-room'
 
 const ASSETS = [

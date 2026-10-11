@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
 import RangeSlider from './ui/RangeSlider'
@@ -34,6 +34,16 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
   const { t, locale, setLocale } = useTranslation()
   const [settings, setSettings] = useState<Settings>(() => storageGet('focus-room-settings', DEFAULT_SETTINGS))
   const [metingApi, setMetingApi] = useState<string>(() => storageGet('focus-room-meting-api', ''))
+
+  // Esc 关闭设置弹窗
+  useEffect(() => {
+    if (!isOpen) return
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [isOpen, onClose])
 
   // 保存设置
   const handleSave = () => {

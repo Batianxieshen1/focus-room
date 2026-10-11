@@ -99,6 +99,19 @@ export default function BottomBar({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showSoundPanel, showAtmosphere, showSleepMenu])
 
+  // 响应外部打开请求（顶栏「纯音乐」广播）：滑出抽屉并定位到指定 Tab
+  useEffect(() => {
+    const open = (e: Event) => {
+      const tab = (e as CustomEvent<{ tab?: 'ambient' | 'music' | 'presets' }>).detail?.tab
+      if (tab) setSoundTab(tab)
+      setShowAtmosphere(false)
+      setShowSleepMenu(false)
+      setShowSoundPanel(true)
+    }
+    window.addEventListener('focusroom:open-drawer', open)
+    return () => window.removeEventListener('focusroom:open-drawer', open)
+  }, [])
+
   // Close sleep menu on outside click
   useEffect(() => {
     if (!showSleepMenu) return

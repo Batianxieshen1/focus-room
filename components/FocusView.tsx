@@ -118,6 +118,11 @@ export default function FocusView({
     setWakeLockSetting((settings as TimerSettings & { wakeLock?: boolean }).wakeLock === true)
   }, [])
 
+  // 顶栏「纯音乐」：广播打开抽屉请求，由 BottomBar 监听并定位到自习电台 Tab
+  const handleOpenMusic = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('focusroom:open-drawer', { detail: { tab: 'music' } }))
+  }, [])
+
   // Auto-start timer if setting is enabled (only once on mount)
   const autoStartDoneRef = useRef(false)
   useEffect(() => {
@@ -484,6 +489,7 @@ export default function FocusView({
           onOpenStats={() => setShowStats(true)}
           onOpenCalendar={() => setShowCalendar(true)}
           onClearScreen={enterZen}
+          onOpenMusic={handleOpenMusic}
         />
       </div>
 
