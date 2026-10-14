@@ -5,6 +5,8 @@ import { storageGet, storageSet } from '@/lib/storage'
 import { saveCustomSound, loadCustomSounds, deleteCustomSound } from '@/lib/audioDB'
 import { applyMixFromURL } from '@/lib/mixShare'
 import { t, TranslationKey } from '@/lib/i18n'
+import { KEYS } from '@/lib/storageKeys'
+import { EV } from '@/lib/events'
 
 export interface Sound {
   id: string
@@ -55,8 +57,8 @@ const FADE_IN_MS = 500
 const FADE_OUT_MS = 300
 const MUTE_FADE_MS = 200
 
-const VOLUMES_KEY = 'focus-room-volumes'
-const MASTER_KEY = 'focus-room-ambient-master'
+const VOLUMES_KEY = KEYS.volumes
+const MASTER_KEY = KEYS.ambientMaster
 
 function loadVolumes(): Record<string, number> {
   if (typeof window === 'undefined') return {}
@@ -276,7 +278,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
 function broadcastMaster(volume: number, isMuted: boolean) {
   if (typeof window === 'undefined') return
-  window.dispatchEvent(new CustomEvent('focusroom:master', {
+  window.dispatchEvent(new CustomEvent(EV.master, {
     detail: { volume, isMuted },
   }))
 }

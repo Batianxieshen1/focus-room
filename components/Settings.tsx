@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
 import RangeSlider from './ui/RangeSlider'
+import { KEYS } from '@/lib/storageKeys'
 
 interface Settings {
   pomodoroMinutes: number
@@ -32,8 +33,8 @@ interface Props {
 
 export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
   const { t, locale, setLocale } = useTranslation()
-  const [settings, setSettings] = useState<Settings>(() => storageGet('focus-room-settings', DEFAULT_SETTINGS))
-  const [metingApi, setMetingApi] = useState<string>(() => storageGet('focus-room-meting-api', ''))
+  const [settings, setSettings] = useState<Settings>(() => storageGet(KEYS.settings, DEFAULT_SETTINGS))
+  const [metingApi, setMetingApi] = useState<string>(() => storageGet(KEYS.metingApi, ''))
 
   // Esc 关闭设置弹窗
   useEffect(() => {
@@ -47,8 +48,8 @@ export default function Settings({ isOpen, onClose, onSettingsChange }: Props) {
 
   // 保存设置
   const handleSave = () => {
-    storageSet('focus-room-settings', settings)
-    storageSet('focus-room-meting-api', metingApi.trim())
+    storageSet(KEYS.settings, settings)
+    storageSet(KEYS.metingApi, metingApi.trim())
     onSettingsChange(settings)
     onClose()
   }

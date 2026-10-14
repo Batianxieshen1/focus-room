@@ -14,6 +14,9 @@ import DailyGoal from '@/components/DailyGoal'
 import Settings from '@/components/Settings'
 import { useTranslation } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
+import { formatClock } from '@/lib/format'
+import { KEYS } from '@/lib/storageKeys'
+import { EV } from '@/lib/events'
 
 const MemoPanel = lazy(() => import('@/components/MemoPanel'))
 const FocusTools = lazy(() => import('@/components/FocusTools'))
@@ -54,19 +57,19 @@ export default function FocusView({
   // ===== WakeLock：计时中 或 用户在设置中开启常亮 =====
   const [timerRunning, setTimerRunning] = useState(false)
   const [wakeLockSetting, setWakeLockSetting] = useState<boolean>(
-    () => storageGet<{ wakeLock?: boolean } | null>('focus-room-settings', null)?.wakeLock === true
+    () => storageGet<{ wakeLock?: boolean } | null>(KEYS.settings, null)?.wakeLock === true
   )
   useWakeLock(timerRunning || wakeLockSetting)
 
   // ===== 计时器折叠态（极简胶囊 vs 完整仪表卡片） =====
   const [timerCollapsed, setTimerCollapsed] = useState<boolean>(
-    () => storageGet<boolean>('focus-room-timer-collapsed', false)
+    () => storageGet<boolean>(KEYS.timerCollapsed, false)
   )
 
   const handleToggleTimerCollapse = useCallback(() => {
     setTimerCollapsed(prev => {
       const next = !prev
-      storageSet('focus-room-timer-collapsed', next)
+      storageSet(KEYS.timerCollapsed, next)
       return next
     })
   }, [])
@@ -120,7 +123,7 @@ export default function FocusView({
 
   // 顶栏「纯音乐」：广播打开抽屉请求，由 BottomBar 监听并定位到自习电台 Tab
   const handleOpenMusic = useCallback(() => {
-    window.dispatchEvent(new CustomEvent('focusroom:open-drawer', { detail: { tab: 'music' } }))
+    window.dispatchEvent(new CustomEvent(EV.openDrawer, { detail: { tab: 'music' } }))
   }, [])
 
   // Auto-start timer if setting is enabled (only once on mount)
@@ -128,7 +131,7 @@ export default function FocusView({
   useEffect(() => {
     if (autoStartDoneRef.current) return
     autoStartDoneRef.current = true
-    const settings = storageGet<{ autoStart?: boolean } | null>('focus-room-settings', null)
+    const settings = storageGet<{ autoStart?: boolean } | null>(KEYS.settings, null)
     if (settings?.autoStart) {
       // Delay slightly so timerActionsRef is ready
       const checkAndStart = () => {
@@ -271,7 +274,7 @@ export default function FocusView({
           clearInterval(sleepIntervalRef.current!)
           muteAll()
           // 同步暂停内置音乐播放器（若在播放）
-          window.dispatchEvent(new CustomEvent('focusroom:sleep-expired'))
+          window.dispatchEvent(new CustomEvent(EV.sleepExpired))
           return null
         }
         return prev - 1
@@ -550,13 +553,7 @@ export default function FocusView({
             <div className="flex items-center gap-3 mt-3 pt-2.5 border-t border-white/[0.06] text-[10px] text-white/35">
               <span>
                 {t('focus.todayStudy')}:{' '}
-                {(() => {
-                  const h = Math.floor(studySeconds / 3600)
-                  const m = Math.floor((studySeconds % 3600) / 60)
-                  const s = studySeconds % 60
-                  if (h > 0) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-                  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-                })()}
+                {formatClock(studySeconds)}
               </span>
               <span>
                 {t('focus.weekStudy')}:{' '}
@@ -623,13 +620,7 @@ export default function FocusView({
               {t('report.todayPomodoros').replace('X', String(reportPomodoros))}
             </div>
             <div className="text-sm text-white/70 mb-3">
-              {t('report.todayStudy').replace('XX:XX', (() => {
-                const h = Math.floor(reportStudySeconds / 3600)
-                const m = Math.floor((reportStudySeconds % 3600) / 60)
-                const s = reportStudySeconds % 60
-                if (h > 0) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-              })())}
+              {t('report.todayStudy').replace('XX:XX', formatClock(reportStudySeconds))}
             </div>
             <div className="flex gap-2 mt-3 justify-center">
               <button

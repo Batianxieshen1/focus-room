@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { t } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
+import { KEYS } from '@/lib/storageKeys'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -12,7 +13,7 @@ interface BeforeInstallPromptEvent extends Event {
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [visible, setVisible] = useState(false)
-  const [dismissed, setDismissed] = useState(() => (typeof window !== 'undefined' ? storageGet<string>('focus-room-install-dismissed', '0') === '1' : false))
+  const [dismissed, setDismissed] = useState(() => (typeof window !== 'undefined' ? storageGet<string>(KEYS.installDismissed, '0') === '1' : false))
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -39,7 +40,7 @@ export default function InstallPrompt() {
   const handleDismiss = () => {
     setVisible(false)
     setDismissed(true)
-    storageSet('focus-room-install-dismissed', '1')
+    storageSet(KEYS.installDismissed, '1')
   }
 
   if (!visible || dismissed || !deferredPrompt) return null

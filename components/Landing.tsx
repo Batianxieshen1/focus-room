@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { storageGet } from '@/lib/storage';
+import { KEYS } from '@/lib/storageKeys'
 
 interface LandingProps {
   onStart: () => void;
@@ -14,7 +15,7 @@ export default function Landing({ onStart, onResume }: LandingProps) {
   const [hasLastScene, setHasLastScene] = useState(false);
 
   useEffect(() => {
-    const hasScene = !!storageGet<string | null>('focus-room-last-scene', null);
+    const hasScene = !!storageGet<string | null>(KEYS.lastScene, null);
     if (hasScene) {
       queueMicrotask(() => setHasLastScene(true));
     }

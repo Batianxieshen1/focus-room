@@ -3,10 +3,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { t } from '@/lib/i18n'
 import { storageGet, storageSet, storageRemove } from '@/lib/storage'
+import { formatClock } from '@/lib/format'
 import { loadAtmosphere, saveAtmosphere, Atmosphere } from '@/lib/atmosphere'
 import ShortcutIndicator from './ShortcutIndicator'
 import SoundMixer from './SoundMixer'
 import MusicPlayer from './MusicPlayer'
+import { KEYS } from '@/lib/storageKeys'
+import { EV } from '@/lib/events'
 
 interface Props {
   sceneName: string
@@ -27,9 +30,7 @@ interface Props {
 }
 
 function formatSleepTime(totalSeconds: number): string {
-  const m = Math.floor(totalSeconds / 60)
-  const s = totalSeconds % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
+  return formatClock(totalSeconds)
 }
 
 export default function BottomBar({
@@ -61,22 +62,22 @@ export default function BottomBar({
 
   // 歌单播放状态 — 持久化，刷新后恢复
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(
-    () => storageGet<string | null>('focus-room-playlist', null)
+    () => storageGet<string | null>(KEYS.playlist, null)
   )
   const [playerMode, setPlayerMode] = useState<'iframe' | 'native'>(
-    () => storageGet<'iframe' | 'native'>('focus-room-player-mode', 'iframe')
+    () => storageGet<'iframe' | 'native'>(KEYS.playerMode, 'iframe')
   )
-  const metingApi = storageGet<string>('focus-room-meting-api', '')
+  const metingApi = storageGet<string>(KEYS.metingApi, '')
 
   const handlePlaylistChange = (id: string | null) => {
     setActivePlaylistId(id)
-    if (id) storageSet('focus-room-playlist', id)
-    else storageRemove('focus-room-playlist')
+    if (id) storageSet(KEYS.playlist, id)
+    else storageRemove(KEYS.playlist)
   }
 
   const handlePlayerModeChange = (mode: 'iframe' | 'native') => {
     setPlayerMode(mode)
-    storageSet('focus-room-player-mode', mode)
+    storageSet(KEYS.playerMode, mode)
   }
 
   // Close popups on Escape key
@@ -108,8 +109,8 @@ export default function BottomBar({
       setShowSleepMenu(false)
       setShowSoundPanel(true)
     }
-    window.addEventListener('focusroom:open-drawer', open)
-    return () => window.removeEventListener('focusroom:open-drawer', open)
+    window.addEventListener(EV.openDrawer, open)
+    return () => window.removeEventListener(EV.openDrawer, open)
   }, [])
 
   // Close sleep menu on outside click

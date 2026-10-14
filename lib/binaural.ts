@@ -4,6 +4,8 @@
 // 注意：必须佩戴耳机才能产生节拍效果。
 
 import { storageGet } from './storage'
+import { KEYS } from '@/lib/storageKeys'
+import { EV } from '@/lib/events'
 
 type Band = 'delta' | 'theta' | 'alpha' | 'beta'
 
@@ -130,16 +132,16 @@ export function bindBinauralListeners() {
   listenersBound = true
 
   // 读取初始 master 音量
-  const initialMaster = storageGet<number>('focus-room-ambient-master', 100)
+  const initialMaster = storageGet<number>(KEYS.ambientMaster, 100)
   if (typeof initialMaster === 'number') {
     state.masterVolume = Math.min(1, Math.max(0, initialMaster / 100))
   }
 
   // 睡眠定时到点时一并静音双耳节拍
-  window.addEventListener('focusroom:sleep-expired', () => setBinaural({ on: false }))
+  window.addEventListener(EV.sleepExpired, () => setBinaural({ on: false }))
 
   // 监听全局 Master 音量与静音广播
-  window.addEventListener('focusroom:master', (e: Event) => {
+  window.addEventListener(EV.master, (e: Event) => {
     const detail = (e as CustomEvent<{ volume?: number; isMuted?: boolean }>).detail
     if (!detail) return
     if (typeof detail.volume === 'number') {

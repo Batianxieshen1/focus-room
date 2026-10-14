@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { t } from '@/lib/i18n'
 import { storageGet } from '@/lib/storage'
+import { KEYS } from '@/lib/storageKeys'
 
 interface Props {
   trigger: boolean
@@ -81,7 +82,7 @@ export default function Notification({ trigger }: Props) {
 
   useEffect(() => {
     if (trigger && !prevTrigger.current) {
-      const settings = storageGet<{ soundEnabled?: boolean } | null>('focus-room-settings', null)
+      const settings = storageGet<{ soundEnabled?: boolean } | null>(KEYS.settings, null)
       const soundEnabled = settings?.soundEnabled !== false
       if (soundEnabled) playNotification()
       sendBrowserNotification()

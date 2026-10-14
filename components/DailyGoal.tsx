@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { t, TranslationKey } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
+import { KEYS } from '@/lib/storageKeys'
 
 interface Props {
   studySeconds: number
@@ -21,7 +22,7 @@ const CONFETTI_COLORS = ['#34d399', '#fbbf24', '#60a5fa', '#f472b6', '#a78bfa', 
 
 function loadGoal(): number {
   if (typeof window === 'undefined') return 60
-  return storageGet<number>('focus-room-daily-goal', 60)
+  return storageGet<number>(KEYS.dailyGoal, 60)
 }
 
 interface ConfettiDot {
@@ -42,7 +43,7 @@ export default function DailyGoal({ studySeconds }: Props) {
   const confettiIdRef = useRef(0)
 
   useEffect(() => {
-    storageSet('focus-room-daily-goal', goalMinutes)
+    storageSet(KEYS.dailyGoal, goalMinutes)
   }, [goalMinutes])
 
   // Close picker when clicking outside

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Scene, SCENE_GRADIENTS, getScenes } from '@/components/SceneSelector'
+import { POSTER_SOURCES } from '@/components/VideoBackground'
 import { t } from '@/lib/i18n'
 
 interface Props {
@@ -120,6 +121,14 @@ export default function ScenePicker({ currentSceneId, onSelectScene, onBack, onE
                       boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.35), inset 0 -1px 3px rgba(255,255,255,0.04)',
                     }}
                   >
+                    {/* 真实场景海报缩略图（渐变作加载兜底） */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={POSTER_SOURCES[scene.id]}
+                      alt=""
+                      loading="lazy"
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
                     {/* Subtle radial highlight overlay */}
                     <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'radial-gradient(circle at 30% 40%, rgba(255,255,255,0.15) 0%, transparent 60%)'}} />
                     {/* Noise texture */}

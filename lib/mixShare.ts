@@ -3,6 +3,7 @@
 // 借鉴 moodist 的 share-link 模式——把滑块配置编码进 URL，打开链接自动还原
 
 import { storageGet, storageSet } from './storage'
+import { KEYS } from '@/lib/storageKeys'
 
 export const MIX_PARAM = 'mix'
 
@@ -33,9 +34,9 @@ export function applyMixFromURL(): boolean {
     if (count === 0) return false
 
     // 合并进现有音量存储（只覆盖配方涉及的音效）
-    const stored = storageGet<Record<string, number>>('focus-room-volumes', {})
+    const stored = storageGet<Record<string, number>>(KEYS.volumes, {})
     const merged = { ...stored, ...mix }
-    storageSet('focus-room-volumes', merged)
+    storageSet(KEYS.volumes, merged)
 
     // 从地址栏移除参数，保持 URL 干净
     const url = window.location.pathname + window.location.hash
