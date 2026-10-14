@@ -7,11 +7,13 @@ import { storageGet, storageSet } from '@/lib/storage'
 import { buildMixShareURL } from '@/lib/mixShare'
 import { setBinaural, bindBinauralSleepTimer, BINAURAL_BANDS } from '@/lib/binaural'
 import { getRadioSnapshot, subscribeRadio, startRadio, pauseRadio, resumeRadio, stopRadio, setRadioVolume } from '@/lib/radio'
+import { KEYS } from '@/lib/storageKeys'
+import { EV } from '@/lib/events'
 
 const ALLOWED_TYPES = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/x-wav']
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
 
-const USER_PRESETS_KEY = 'focus-room-mix-presets'
+const USER_PRESETS_KEY = KEYS.mixPresets
 
 interface UserPreset {
   id: string
@@ -63,28 +65,28 @@ const MIX_PRESETS: Array<{ id: string; icon: string; nameKey: Parameters<typeof 
   { id: 'meadow-breeze', icon: '🏕️', nameKey: 'mix.meadowBreeze', volumes: { wind: 50, fire: 40, night: 30 } },
 ]
 
-// 24/7 免版权自习电台
+// 24/7 免版权自习电台（2026-10 实测存活流；失败自动跳台见下方 radioFailed 监听）
 const STUDY_RADIOS = [
   {
-    id: 'lofi-girl',
-    name: 'Lofi Chillhop Beats',
-    descKey: 'radio.lofiDesc',
-    icon: '☕',
-    streamUrl: 'https://stream.zeno.fm/f3wvbbqmdg8uv',
+    id: 'fip-chill',
+    name: 'FIP Eclectic Chill',
+    descKey: 'radio.fipChillDesc',
+    icon: '🌙',
+    streamUrl: 'https://icecast.radiofrance.fr/fip-midfi.mp3',
   },
   {
-    id: 'jazz-cafe',
-    name: 'Rainy Jazz Cafe',
-    descKey: 'radio.jazzDesc',
+    id: 'fip-jazz',
+    name: 'FIP Jazz Café',
+    descKey: 'radio.fipJazzDesc',
     icon: '🎷',
-    streamUrl: 'https://ice1.somafm.com/groovesalad-128-mp3',
+    streamUrl: 'https://icecast.radiofrance.fr/fipjazz-midfi.mp3',
   },
   {
-    id: 'deep-alpha',
-    name: 'Deep Focus 432Hz',
-    descKey: 'radio.alphaDesc',
-    icon: '🌌',
-    streamUrl: 'https://ice1.somafm.com/dronezone-128-mp3',
+    id: 'fm-classical',
+    name: 'France Musique Classique',
+    descKey: 'radio.classicalDesc',
+    icon: '🎻',
+    streamUrl: 'https://icecast.radiofrance.fr/francemusique-midfi.mp3',
   },
   {
     id: 'vapor-night',
@@ -95,6 +97,7 @@ const STUDY_RADIOS = [
   },
 ] as const
 
+// 白噪音分类（与收藏过滤正交组合）
 const SOUND_CATEGORIES: Record<'nature' | 'space' | 'focus', string[]> = {
   nature: ['rain', 'ocean', 'forest', 'fire', 'wind', 'night'],
   space: ['cafe', 'keyboard', 'pageturn', 'clock'],
@@ -136,14 +139,14 @@ export default function SoundMixer({
   const [musicSubTab, setMusicSubTab] = useState<'radio' | 'netease' | 'link'>('radio')
 
   // ===== 音效收藏与分类 =====
-  const [soundFavs, setSoundFavs] = useState<string[]>(() => storageGet<string[]>('focus-room-sound-favs', []))
+  const [soundFavs, setSoundFavs] = useState<string[]>(() => storageGet<string[]>(KEYS.soundFavs, []))
   const [showFavsOnly, setShowFavsOnly] = useState(false)
   const [soundCategory, setSoundCategory] = useState<'all' | 'nature' | 'space' | 'focus'>('all')
 
   const toggleFav = (id: string) => {
     setSoundFavs(prev => {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-      storageSet('focus-room-sound-favs', next)
+      storageSet(KEYS.soundFavs, next)
       return next
     })
   }
@@ -178,12 +181,18 @@ export default function SoundMixer({
   const [radio, setRadio] = useState(() => getRadioSnapshot())
   useEffect(() => subscribeRadio(() => setRadio(getRadioSnapshot())), [])
 
+  // 手动切换电台时重置失败计数
+  const resetRadioFails = () => {
+    radioFailRef.current = { lastId: null, lastAt: 0, attempts: 0 }
+  }
+
   // 当外部网易云歌单激活时，自动停止自习电台，避免声音打架
   useEffect(() => {
     if (activePlaylistId) stopRadio()
   }, [activePlaylistId])
 
-  const handleToggleRadio = (station: typeof STUDY_RADIOS[number]) => {
+  const handleToggleRadio = (station: (typeof STUDY_RADIOS)[number]) => {
+    resetRadioFails()
     if (radio.stationId === station.id) {
       // 同一台：播放中→暂停；已暂停→续播
       if (radio.playing) pauseRadio()
@@ -216,13 +225,13 @@ export default function SoundMixer({
 
   // Preset playlists — verified real content
   const PRESET_PLAYLISTS = [
-    { id: '459034281', name: 'Deep Focus Study', icon: '🧠', desc: '358首深度专注音乐' },
-    { id: '7722421306', name: 'Ambient Lofi', icon: '🎧', desc: '134首氛围低保真' },
-    { id: '2556149301', name: '学习专注纯音', icon: '📚', desc: '90首学习专注音乐' },
-    { id: '2109356424', name: 'Rain & Nature', icon: '🌧', desc: '49首雨声与自然音' },
-    { id: '2829883282', name: '星巴克咖啡厅', icon: '☕', desc: '轻爵士与慢调民谣' },
-    { id: '2646741761', name: '治愈系钢琴曲', icon: '🎹', desc: '纯净钢琴沉浸自习' },
-  ]
+    { id: '459034281', nameKey: 'playlist.deepName', icon: '🧠', descKey: 'playlist.deepDesc' },
+    { id: '7722421306', nameKey: 'playlist.ambientName', icon: '🎧', descKey: 'playlist.ambientDesc' },
+    { id: '2556149301', nameKey: 'playlist.studyName', icon: '📚', descKey: 'playlist.studyDesc' },
+    { id: '2109356424', nameKey: 'playlist.rainName', icon: '🌧', descKey: 'playlist.rainDesc' },
+    { id: '2829883282', nameKey: 'playlist.cafeName', icon: '☕', descKey: 'playlist.cafeDesc' },
+    { id: '2646741761', nameKey: 'playlist.pianoName', icon: '🎹', descKey: 'playlist.pianoDesc' },
+  ] as const
 
   const extractPlaylistId = (url: string): string | null => {
     const numOnly = url.trim().match(/^(\d{5,})$/)
@@ -261,6 +270,31 @@ export default function SoundMixer({
     setNotification(msg)
     setTimeout(() => setNotification(null), 2500)
   }, [])
+
+  // 电台流失败（上游下线/断流）：自动跳下一台；整轮全灭则提示
+  const radioFailRef = useRef<{ lastId: string | null; lastAt: number; attempts: number }>({ lastId: null, lastAt: 0, attempts: 0 })
+  useEffect(() => {
+    const onFailed = (e: Event) => {
+      const failedId = (e as CustomEvent<{ stationId?: string | null }>).detail?.stationId ?? null
+      const st = radioFailRef.current
+      const now = Date.now()
+      if (failedId && st.lastId === failedId && now - st.lastAt < 1000) return // 去重（error 事件与 play 拒绝可能双发）
+      st.lastId = failedId
+      st.lastAt = now
+      st.attempts += 1
+      if (st.attempts > STUDY_RADIOS.length) {
+        st.attempts = 0
+        showNotification(t('radio.allFailed'))
+        return
+      }
+      const idx = STUDY_RADIOS.findIndex(r => r.id === failedId)
+      const next = STUDY_RADIOS[(idx + 1 + STUDY_RADIOS.length) % STUDY_RADIOS.length]
+      startRadio(next.id, next.streamUrl)
+    }
+    window.addEventListener(EV.radioFailed, onFailed)
+    return () => window.removeEventListener(EV.radioFailed, onFailed)
+  }, [showNotification])
+
 
   const handleSavePreset = useCallback(() => {
     const volumes = currentVolumes()
@@ -828,7 +862,7 @@ export default function SoundMixer({
             {activeRadioId && (
               <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.05] mt-1">
                 <span className="text-xs text-white/50">📻</span>
-                <span className="text-[11px] text-white/70 w-16 truncate">电台音量</span>
+                <span className="text-[11px] text-white/70 w-16 truncate">{t('sound.radioVolume')}</span>
                 <input
                   type="range"
                   min={0}
@@ -874,9 +908,9 @@ export default function SoundMixer({
                 >
                   <div className="flex items-center gap-1.5 mb-1">
                     <span className="text-lg">{pl.icon}</span>
-                    <span className="text-xs font-medium text-white/90 truncate">{pl.name}</span>
+                    <span className="text-xs font-medium text-white/90 truncate">{t(pl.nameKey)}</span>
                   </div>
-                  <span className="text-[10px] text-white/40 leading-tight truncate w-full">{pl.desc}</span>
+                  <span className="text-[10px] text-white/40 leading-tight truncate w-full">{t(pl.descKey)}</span>
                 </button>
               ))}
             </div>

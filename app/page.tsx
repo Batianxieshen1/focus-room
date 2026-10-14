@@ -11,6 +11,7 @@ import { Scene, SCENES, getScenes } from '@/components/SceneSelector'
 import { AudioProvider } from '@/contexts/AudioContext'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { loadAtmosphere, applyAtmosphereCss } from '@/lib/atmosphere'
+import { KEYS } from '@/lib/storageKeys'
 
 type AppStep = 'landing' | 'picker' | 'focus'
 
@@ -22,7 +23,7 @@ function AppInner() {
   const [pageTransitioning, setPageTransitioning] = useState(false)
   const [sceneId, setSceneId] = useState<string>(() => {
     if (typeof window === 'undefined') return SCENES[0].id
-    const saved = storageGet<string | null>('focus-room-last-scene', null)
+    const saved = storageGet<string | null>(KEYS.lastScene, null)
     if (saved && SCENES.some(s => s.id === saved)) {
       return saved
     }
@@ -32,7 +33,7 @@ function AppInner() {
   // First-use onboarding
   const [onboardingStep, setOnboardingStep] = useState<number | null>(() => {
     if (typeof window === 'undefined') return null
-    return storageGet<string | null>('focus-room-onboarded', null) ? null : 0
+    return storageGet<string | null>(KEYS.onboarded, null) ? null : 0
   })
 
   const handleOnboardingNext = useCallback(() => {
@@ -43,7 +44,7 @@ function AppInner() {
   }, [])
 
   const handleOnboardingFinish = useCallback(() => {
-    storageSet('focus-room-onboarded', '1')
+    storageSet(KEYS.onboarded, '1')
     setOnboardingStep(null)
   }, [])
 
@@ -51,7 +52,7 @@ function AppInner() {
 
   // Persist scene selection to localStorage
   useEffect(() => {
-    storageSet('focus-room-last-scene', sceneId)
+    storageSet(KEYS.lastScene, sceneId)
   }, [sceneId])
 
   useEffect(() => { initLocale() }, [])

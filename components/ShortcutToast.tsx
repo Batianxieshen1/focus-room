@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import { t, TranslationKey } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
+import { KEYS } from '@/lib/storageKeys'
 
-const STORAGE_KEY = 'focus-room-shortcut-seen'
+const STORAGE_KEY = KEYS.shortcutSeen
 
 const SHORTCUTS: { key: string; labelKey: TranslationKey }[] = [
   { key: 'Space', labelKey: 'shortcut.startPause' },

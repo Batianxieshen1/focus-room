@@ -3,6 +3,7 @@
 // 通过 CSS 变量作用到视频背景层：filter: brightness() blur() sepia()
 
 import { storageGet, storageSet } from './storage'
+import { KEYS } from '@/lib/storageKeys'
 
 export interface Atmosphere {
   /** 遮光度，20~100（%），越低越暗 */
@@ -19,7 +20,7 @@ export const DEFAULT_ATMOSPHERE: Atmosphere = {
   warmth: 0,
 }
 
-const KEY = 'focus-room-atmosphere'
+const KEY = KEYS.atmosphere
 
 export function loadAtmosphere(): Atmosphere {
   if (typeof window === 'undefined') return DEFAULT_ATMOSPHERE

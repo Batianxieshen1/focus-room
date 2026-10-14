@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { getStudyHistory, StudySession } from '@/hooks/useTimer'
 import { t } from '@/lib/i18n'
+import { formatDateKey } from '@/lib/format'
 import { storageGet, storageSet } from '@/lib/storage'
+import { KEYS } from '@/lib/storageKeys'
 
 function getLocalDate(d?: Date): string {
-  const dt = d || new Date()
-  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`
+  return formatDateKey(d)
 }
 
 interface Props {
@@ -104,10 +105,10 @@ export default function StudyStats({ onClose }: Props) {
       version: 1,
       exportedAt: new Date().toISOString(),
       history: getStudyHistory(),
-      settings: storageGet('focus-room-settings', {}),
-      dailyGoal: storageGet('focus-room-daily-goal', 60),
-      volumes: storageGet('focus-room-volumes', {}),
-      locale: storageGet('focus-room-locale', 'zh'),
+      settings: storageGet(KEYS.settings, {}),
+      dailyGoal: storageGet(KEYS.dailyGoal, 60),
+      volumes: storageGet(KEYS.volumes, {}),
+      locale: storageGet(KEYS.locale, 'zh'),
     }
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -165,20 +166,20 @@ export default function StudyStats({ onClose }: Props) {
           .filter(h => h.date >= cutoffStr)
           .sort((a, b) => a.date.localeCompare(b.date))
 
-        storageSet('focus-room-history', filtered)
+        storageSet(KEYS.history, filtered)
 
         // Import settings if present
         if (data.settings && typeof data.settings === 'object') {
-          storageSet('focus-room-settings', data.settings)
+          storageSet(KEYS.settings, data.settings)
         }
         if (data.dailyGoal !== undefined) {
-          storageSet('focus-room-daily-goal', data.dailyGoal)
+          storageSet(KEYS.dailyGoal, data.dailyGoal)
         }
         if (data.volumes && typeof data.volumes === 'object') {
-          storageSet('focus-room-volumes', data.volumes)
+          storageSet(KEYS.volumes, data.volumes)
         }
         if (data.locale) {
-          storageSet('focus-room-locale', data.locale)
+          storageSet(KEYS.locale, data.locale)
         }
 
         setHistory(filtered)

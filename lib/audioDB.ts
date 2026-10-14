@@ -1,7 +1,8 @@
+import { KEYS } from '@/lib/storageKeys'
 // lib/audioDB.ts
 // IndexedDB wrapper for storing custom audio blobs
 
-const DB_NAME = 'focus-room-audio'
+const DB_NAME = KEYS.audioDb
 const DB_VERSION = 1
 const STORE_NAME = 'custom-sounds'
 

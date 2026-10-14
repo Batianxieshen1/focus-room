@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { getStudyHistory, StudySession } from '@/hooks/useTimer'
 import { t } from '@/lib/i18n'
+import { formatDateKey } from '@/lib/format'
 
 interface Props {
   onClose: () => void
@@ -29,7 +30,7 @@ export default function StudyCalendar({ onClose }: Props) {
 
   // Map date string -> studySeconds
   const getSecondsForDay = (day: number): number => {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    const dateStr = formatDateKey(new Date(year, month, day))
     const session = history.find(h => h.date === dateStr)
     return session?.studySeconds || 0
   }

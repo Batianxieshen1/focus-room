@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { t, useTranslation } from '@/lib/i18n'
 import { POSTER_SOURCES } from './VideoBackground'
+import { formatMinutes } from '@/lib/format'
 
 interface Props {
   pomodoros: number
@@ -132,14 +133,6 @@ function drawCard(canvas: HTMLCanvasElement, opts: DrawOptions) {
 
   drawStatCard(leftCardX, cardY, String(pomodoros), t('share.pomodoros'))
 
-  const formatMinutes = (m: number) => {
-    if (m >= 60) {
-      const h = Math.floor(m / 60)
-      const min = m % 60
-      return min > 0 ? `${h}h${min}` : `${h}h`
-    }
-    return `${m}`
-  }
   drawStatCard(rightCardX, cardY, formatMinutes(studyMinutes), t('share.study'))
 
   // --- 场景信息 ---

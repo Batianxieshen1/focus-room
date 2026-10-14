@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore, useCallback } from 'react'
 import { storageGet, storageSet } from './storage'
+import { KEYS } from '@/lib/storageKeys'
 
 export type Locale = 'zh' | 'en'
 
@@ -426,9 +427,23 @@ const translations = {
     'settings.presetClassic': '经典',
     'settings.presetDeep': '深度',
     'settings.presetSprint': '冲刺',
-    'radio.lofiDesc': '经典柔和低保真节拍 · 慢节奏专注',
-    'radio.jazzDesc': '雨夜都市爵士萨克斯 · 惬意咖啡厅',
-    'radio.alphaDesc': '双耳节律与环境空间声学 · 深度心流',
+    'sound.radioVolume': '电台音量',
+    'radio.fipChillDesc': '巴黎 FIP 全天候 eclectic 流 · 爵士电子世界音乐无缝混流',
+    'radio.fipJazzDesc': '纯爵士频道 · 雨夜咖啡馆的萨克斯与钢琴',
+    'radio.classicalDesc': '法国音乐台古典直播 · 弦乐与钢琴的深度专注',
+    'radio.allFailed': '电台暂时都不可用，请稍后再试',
+    'playlist.deepName': 'Deep Focus Study',
+    'playlist.deepDesc': '358首深度专注音乐',
+    'playlist.ambientName': 'Ambient Lofi',
+    'playlist.ambientDesc': '134首氛围低保真',
+    'playlist.studyName': '学习专注纯音',
+    'playlist.studyDesc': '90首学习专注音乐',
+    'playlist.rainName': 'Rain & Nature',
+    'playlist.rainDesc': '49首雨声与自然音',
+    'playlist.cafeName': '星巴克咖啡厅',
+    'playlist.cafeDesc': '轻爵士与慢调民谣',
+    'playlist.pianoName': '治愈系钢琴曲',
+    'playlist.pianoDesc': '纯净钢琴沉浸自习',
     'radio.vaporDesc': '复古合成器波与夜色律动 · 编程沉浸',
   },
   en: {
@@ -851,9 +866,23 @@ const translations = {
     'settings.presetClassic': 'Classic',
     'settings.presetDeep': 'Deep',
     'settings.presetSprint': 'Sprint',
-    'radio.lofiDesc': 'Mellow chillhop classics · slow-tempo focus',
-    'radio.jazzDesc': 'Rainy-night city jazz sax · cozy cafe',
-    'radio.alphaDesc': 'Binaural rhythms & spatial ambience · deep flow',
+    'sound.radioVolume': 'Radio volume',
+    'radio.fipChillDesc': 'Paris FIP all-day eclectic flow · jazz, electro & world in one stream',
+    'radio.fipJazzDesc': 'All-jazz channel · sax & piano for rainy-night cafes',
+    'radio.classicalDesc': 'France Musique classical live · strings & piano for deep focus',
+    'radio.allFailed': 'All stations unavailable right now, try again later',
+    'playlist.deepName': 'Deep Focus Study',
+    'playlist.deepDesc': '358 deep-focus tracks',
+    'playlist.ambientName': 'Ambient Lofi',
+    'playlist.ambientDesc': '134 ambient lo-fi tracks',
+    'playlist.studyName': 'Study Instrumentals',
+    'playlist.studyDesc': '90 study-focus tracks',
+    'playlist.rainName': 'Rain & Nature',
+    'playlist.rainDesc': '49 rain & nature sounds',
+    'playlist.cafeName': 'Cafe Corner',
+    'playlist.cafeDesc': 'Light jazz & slow folk',
+    'playlist.pianoName': 'Healing Piano',
+    'playlist.pianoDesc': 'Pure piano immersion',
     'radio.vaporDesc': 'Retro synthwaves & night pulse · coding immersion',
   },
 } as const
@@ -864,7 +893,7 @@ let currentLocale: Locale = 'zh'
 const listeners = new Set<() => void>()
 
 function getSavedLocale(): Locale {
-  const saved = storageGet<string>('focus-room-locale', 'zh')
+  const saved = storageGet<string>(KEYS.locale, 'zh')
   if (saved === 'zh' || saved === 'en') return saved
   return 'zh'
 }
@@ -890,7 +919,7 @@ export function subscribeLocale(callback: () => void) {
 export function setLocale(locale: Locale) {
   if (currentLocale !== locale) {
     currentLocale = locale
-    storageSet('focus-room-locale', locale)
+    storageSet(KEYS.locale, locale)
     listeners.forEach(fn => fn())
   }
 }

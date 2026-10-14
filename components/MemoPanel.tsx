@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { t } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
+import { KEYS } from '@/lib/storageKeys'
 
 interface Props {
   onClose: () => void
@@ -17,7 +18,7 @@ interface Todo {
 
 type Filter = 'all' | 'active' | 'done'
 
-const STORAGE_KEY = 'focus-room-memo'
+const STORAGE_KEY = KEYS.memo
 
 function loadTodos(): Todo[] {
   return storageGet<Todo[]>(STORAGE_KEY, [])

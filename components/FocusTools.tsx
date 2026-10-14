@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { t } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
+import { KEYS } from '@/lib/storageKeys'
 
 interface Link {
   id: string
@@ -23,7 +24,7 @@ const DEFAULT_LINKS: Link[] = [
   { id: 'translate', name: '翻译', url: 'https://translate.google.com' },
 ]
 
-const STORAGE_KEY = 'focus-room-tools'
+const STORAGE_KEY = KEYS.tools
 
 function loadCustomLinks(): Link[] {
   return storageGet<Link[]>(STORAGE_KEY, [])

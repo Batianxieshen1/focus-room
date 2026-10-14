@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { storageGet, storageSet } from '@/lib/storage'
+import { formatClock, formatDateKey } from '@/lib/format'
+import { KEYS } from '@/lib/storageKeys'
 
 function getLocalDate(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+  return formatDateKey()
 }
 
 export type TimerMode = 'pomodoro' | 'stopwatch' | 'countdown'
@@ -44,14 +45,14 @@ export interface StudySession {
 // 加载设置（防御：存储层异常时绝不返回残缺对象）
 function loadSettings(): TimerSettings {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS
-  return storageGet<TimerSettings>('focus-room-settings', DEFAULT_SETTINGS) ?? DEFAULT_SETTINGS
+  return storageGet<TimerSettings>(KEYS.settings, DEFAULT_SETTINGS) ?? DEFAULT_SETTINGS
 }
 
 // 加载今日数据
 function loadTodayData(): Partial<TimerState> {
   if (typeof window === 'undefined') return {}
   const today = getLocalDate()
-  const data = storageGet<{ date?: string; studySeconds?: number; pomodoros?: number } | null>('focus-room-today', null)
+  const data = storageGet<{ date?: string; studySeconds?: number; pomodoros?: number } | null>(KEYS.today, null)
   if (data) {
     if (data.date === today) {
       return {
@@ -66,11 +67,11 @@ function loadTodayData(): Partial<TimerState> {
 
 function saveTodayData(studySeconds: number, pomodoros: number) {
   const today = getLocalDate()
-  storageSet('focus-room-today', { date: today, studySeconds, pomodoros })
+  storageSet(KEYS.today, { date: today, studySeconds, pomodoros })
 }
 
 function archiveSession(session: StudySession) {
-  const history = storageGet<StudySession[]>('focus-room-history', [])
+  const history = storageGet<StudySession[]>(KEYS.history, [])
   const idx = history.findIndex(h => h.date === session.date)
   if (idx >= 0) {
     history[idx].studySeconds += session.studySeconds
@@ -80,13 +81,13 @@ function archiveSession(session: StudySession) {
   }
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - 90)
-  const cutoffStr = `${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,'0')}-${String(cutoff.getDate()).padStart(2,'0')}`
-  storageSet('focus-room-history', history.filter(h => h.date >= cutoffStr))
+  const cutoffStr = formatDateKey(cutoff)
+  storageSet(KEYS.history, history.filter(h => h.date >= cutoffStr))
 }
 
 export function getStudyHistory(): StudySession[] {
   if (typeof window === 'undefined') return []
-  return storageGet<StudySession[]>('focus-room-history', [])
+  return storageGet<StudySession[]>(KEYS.history, [])
 }
 
 const BACKGROUND_TIMEOUT_SECONDS = 10 * 60 // 10 minutes
@@ -415,13 +416,7 @@ export function useTimer() {
     })
   }, [])
 
-  const formatTime = useCallback((totalSecs: number) => {
-    const h = Math.floor(totalSecs / 3600)
-    const m = Math.floor((totalSecs % 3600) / 60)
-    const s = totalSecs % 60
-    if (h > 0) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-  }, [])
+  const formatTime = useCallback((totalSecs: number) => formatClock(totalSecs), [])
 
   return {
     ...state,

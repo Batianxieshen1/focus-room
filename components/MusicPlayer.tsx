@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { t } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
+import { formatClock } from '@/lib/format'
+import { KEYS } from '@/lib/storageKeys'
+import { EV } from '@/lib/events'
 
 /**
  * 内置网易云播放器（Meting 协议）。
@@ -21,7 +24,7 @@ interface Track {
 // 歌单曲目按歌单 ID 缓存在内存（音频直链带时效 token，绝不持久化）
 const trackCache = new Map<string, Track[]>()
 
-const MUSIC_VOLUME_KEY = 'focus-room-music-volume'
+const MUSIC_VOLUME_KEY = KEYS.musicVolume
 
 function upgradeHttps(url: string): string {
   return typeof url === 'string' && url.startsWith('http://') ? url.replace(/^http:\/\//, 'https://') : url
@@ -60,7 +63,7 @@ export default function MusicPlayer({ playlistId, api, expanded, onClear }: Prop
   const [playing, setPlaying] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [volume, setVolumeState] = useState<number>(() => storageGet<number>(MUSIC_VOLUME_KEY, 80))
-  const [masterVolume, setMasterVolume] = useState<number>(() => storageGet<number>('focus-room-ambient-master', 100))
+  const [masterVolume, setMasterVolume] = useState<number>(() => storageGet<number>(KEYS.ambientMaster, 100))
   const [isMasterMuted, setIsMasterMuted] = useState(false)
   const [progress, setProgress] = useState({ cur: 0, dur: 0 })
 
@@ -77,8 +80,8 @@ export default function MusicPlayer({ playlistId, api, expanded, onClear }: Prop
       if (typeof detail.volume === 'number') setMasterVolume(detail.volume)
       if (typeof detail.isMuted === 'boolean') setIsMasterMuted(detail.isMuted)
     }
-    window.addEventListener('focusroom:master', handleMaster)
-    return () => window.removeEventListener('focusroom:master', handleMaster)
+    window.addEventListener(EV.master, handleMaster)
+    return () => window.removeEventListener(EV.master, handleMaster)
   }, [])
 
   const current = tracks[index] ?? null
@@ -272,8 +275,8 @@ export default function MusicPlayer({ playlistId, api, expanded, onClear }: Prop
   // ===== 睡眠定时到点暂停 =====
   useEffect(() => {
     const onPause = () => setPlaying(false)
-    window.addEventListener('focusroom:sleep-expired', onPause)
-    return () => window.removeEventListener('focusroom:sleep-expired', onPause)
+    window.addEventListener(EV.sleepExpired, onPause)
+    return () => window.removeEventListener(EV.sleepExpired, onPause)
   }, [])
 
   // 卸载时停止播放
@@ -284,21 +287,16 @@ export default function MusicPlayer({ playlistId, api, expanded, onClear }: Prop
 
   if (!api) return null
 
-  const fmt = (sec: number) => {
-    const s = Math.floor(sec % 60)
-    const m = Math.floor(sec / 60)
-    return `${m}:${String(s).padStart(2, '0')}`
-  }
 
   const progressBar = (() => {
     const pct = progress.dur > 0 ? Math.min(100, (progress.cur / progress.dur) * 100) : 0
     return (
       <div className="flex items-center gap-2 mt-2">
-        <span className="text-[10px] text-white/35 tabular-nums w-8 text-right">{fmt(progress.cur)}</span>
+        <span className="text-[10px] text-white/35 tabular-nums w-8 text-right">{formatClock(progress.cur)}</span>
         <div className="flex-1 h-[3px] rounded-full bg-white/10 overflow-hidden">
           <div className="h-full bg-amber-400/70 transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
-        <span className="text-[10px] text-white/35 tabular-nums w-8">{progress.dur > 0 ? fmt(progress.dur) : '--:--'}</span>
+        <span className="text-[10px] text-white/35 tabular-nums w-8">{progress.dur > 0 ? formatClock(progress.dur) : '--:--'}</span>
       </div>
     )
   })()

@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { t } from '@/lib/i18n'
 import { storageGet, storageSet } from '@/lib/storage'
+import { KEYS } from '@/lib/storageKeys'
 
-const DISMISSED_KEY = 'focus-room-shortcut-indicator-dismissed'
+const DISMISSED_KEY = KEYS.shortcutIndicatorDismissed
 
 const SHORTCUTS = [
   { key: 'Space', i18nKey: 'settings.startPause' as const },
