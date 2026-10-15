@@ -64,6 +64,16 @@ export function subscribeRadio(fn: () => void): () => void {
 }
 
 /** 启动（或切换到）指定电台；resolve(true) 表示已开始播放 */
+/**
+ * 启动（或切换到）指定电台。
+ * 连接看门狗：部分死流（TCP 黑洞型，如上游域名不可路由）不会 reject 也不会
+ * error，play() 永远 pending——此时 8 秒内未开播即按失败广播，让 UI 跳台。
+ * 代数令牌：跳台会重设 src，旧 play 的迟到结果一律作废，不重复触发失败。
+ */
+export const RADIO_CONNECT_TIMEOUT_MS = 8000
+
+let playGeneration = 0
+
 export function startRadio(stationId: string, streamUrl: string): Promise<boolean> {
   if (!audio) {
     audio = new Audio()
@@ -76,23 +86,44 @@ export function startRadio(stationId: string, streamUrl: string): Promise<boolea
       }
     })
   }
+  const gen = ++playGeneration
   if (state.stationId !== stationId) {
     audio.src = streamUrl
     state.stationId = stationId
   }
   applyVolume()
-  return audio.play()
+
+  let watchdog: ReturnType<typeof setTimeout> | undefined
+  const armed = new Promise<boolean>(resolve => {
+    watchdog = setTimeout(() => {
+      if (gen !== playGeneration) return resolve(false)
+      state.playing = false
+      notify()
+      dispatchFailed()
+      resolve(false)
+    }, RADIO_CONNECT_TIMEOUT_MS)
+    if (watchdog.unref) watchdog.unref()
+  })
+
+  const actual = audio.play()
     .then(() => {
+      if (gen !== playGeneration) return false // 迟到的成功：已被跳台作废
       state.playing = true
       notify()
       return true
     })
     .catch(() => {
+      if (gen !== playGeneration) return false // 迟到的失败（src 被换掉）：静默作废
       state.playing = false
       notify()
       dispatchFailed()
       return false
     })
+    .finally(() => {
+      if (watchdog) clearTimeout(watchdog)
+    })
+
+  return Promise.race([armed, actual])
 }
 
 function dispatchFailed() {
